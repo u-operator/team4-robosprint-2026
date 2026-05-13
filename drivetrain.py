@@ -2,58 +2,46 @@ import RPi.GPIO as GPIO
 
 class Drivetrain:
     def __init__(self):
-        # Setup your motor GPIO pins
-        self.left_motor  = ...
-        self.right_motor = ...
+        # Motor driver pins (adjust to your wiring)
+        self.LEFT_PWM  = 12   # PWM pin for left motor speed
+        self.LEFT_DIR  = 16   # Direction pin for left motor
+        self.RIGHT_PWM = 13   # PWM pin for right motor speed
+        self.RIGHT_DIR = 20   # Direction pin for right motor
 
-        # IR sensors or camera line detection
-        self.line_sensor_left  = ...
-        self.line_sensor_right = ...
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.LEFT_PWM,  GPIO.OUT)
+        GPIO.setup(self.LEFT_DIR,  GPIO.OUT)
+        GPIO.setup(self.RIGHT_PWM, GPIO.OUT)
+        GPIO.setup(self.RIGHT_DIR, GPIO.OUT)
 
-    # --- Navigation ---
-    def move_to(self, x, y) -> bool:
-        """High-level move, uses line following internally."""
-        self.follow_line_until(target=(x, y))
-        return True
+        # PWM at 1000Hz
+        self.pwm_left  = GPIO.PWM(self.LEFT_PWM,  1000)
+        self.pwm_right = GPIO.PWM(self.RIGHT_PWM, 1000)
+        self.pwm_left.start(0)
+        self.pwm_right.start(0)
 
-    # --- Line Following ---
-    def follow_line_until(self, target):
-        """Follow line with motor correction until target reached."""
-        while not self.at_target(target):
-            self.correct_motors()
-
-    def correct_motors(self):
-        """Read sensors, apply correction."""
-        left  = self.read_sensor(self.line_sensor_left)
-        right = self.read_sensor(self.line_sensor_right)
-
-        if left and not right:
-            self.turn_slightly_right()
-        elif right and not left:
-            self.turn_slightly_left()
-        else:
-            self.go_straight()
-
-    # --- Motor Primitives ---
-    def go_straight(self):
-        self.set_motors(speed_left=100, speed_right=100)
-
-    def turn_slightly_left(self):
-        self.set_motors(speed_left=60, speed_right=100)
-
-    def turn_slightly_right(self):
-        self.set_motors(speed_left=100, speed_right=60)
+    # ── Core ────────────────────────────────────────
+    def set_motors(self, speed_left: float, speed_right: float):
+        """
+        speed: -100 to 100
+        Negative = reverse, Positive = forward, 0 = stop
+        Called by line_follower.py for PID correction.
+        """
+        self._drive(self.pwm_left,  self.LEFT_DIR,  speed_left)
+        self._drive(self.pwm_right, self.RIGHT_DIR, speed_right)
 
     def stop(self):
         self.set_motors(0, 0)
 
-    def set_motors(self, speed_left, speed_right):
-        # Write to GPIO / PWM here
-        pass
+    def cleanup(self):
+        """Call this on program exit."""
+        self.stop()
+        self.pwm_left.stop()
+        self.pwm_right.stop()
+        GPIO.cleanup()
 
-    def read_sensor(self, pin) -> bool:
-        return GPIO.input(pin)
-
-    def at_target(self, target) -> bool:
-        # Use encoders, IMU, or junction counting
-        pass
+    # ── Internal ─────────────────────────────────────
+    def _drive(self, pwm, dir_pin, speed: float):
+        speed = max(-100, min(100, speed))   # clamp to valid range
+        GPIO.output(dir_pin, GPIO.HIGH if speed >= 0 else GPIO.LOW)
+        pwm.ChangeDutyCycle(abs(speed))

@@ -1,5 +1,8 @@
+from importlib.metadata import pass_none
+
 import cv2
 import numpy as np
+import time
 
 class LineFollower:
     def __init__(self, camera, drivetrain):
@@ -17,11 +20,12 @@ class LineFollower:
 
     # ── Main Follow Loop ────────────────────────────
     def follow(self, stop_condition=None):
+        """ Follow line until a decision point (curve or junction)"""
         frame_count = 0
         while True:
-            if stop_condition and stop_condition():
+            if self.junction_detected:
                 self.drivetrain.stop()
-                break
+                return True
 
             frame = self.camera.capture()
             frame_count += 1
@@ -33,8 +37,13 @@ class LineFollower:
             error = self.get_line_error(frame)
 
             if error is None:
-                self.handle_line_lost()
+                try:
+                    self.handle_line_lost()
+                except RuntimeError:
+                    return None
+                self.reset_pid()
                 continue
+
 
             correction = self.pid(error)
             self.drivetrain.set_motors(
@@ -145,8 +154,27 @@ class LineFollower:
         self.integral   = 0
 
     # ── Line Lost Handling ───────────────────────────
-    def handle_line_lost(self):
+    def handle_line_lost(self, timeout=2.0):
         self.drivetrain.stop()
+        start_time = time.time()
+
+        # Spin slowly to search for the line
+        while time.time() - start_time < timeout:
+            self.drivetrain.set_motors(speed_left=-30, speed_right=30)  # spin in place
+
+            frame = self.camera.capture()
+            error = self.get_line_error(frame)
+
+            if error is not None:
+                self.reset_pid()  # clear stale PID state before resuming
+                return  # line found, resume follow() loop normally
+
+        # Timed out — couldn't find line
+        self.drivetrain.stop()
+        raise RuntimeError("Line lost: could not relocate line within timeout")
+
+
+
 
     # ── Test Function ────────────────────────────────
     def test_visual(self):

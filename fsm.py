@@ -50,6 +50,8 @@ class Phase1FSM:
                 success = self.robot.navigate("start zone", "pick zone")
                 if success:
                     self.state = State.SCAN_CUBE
+                else:
+                    self.state = State.IDLE
 
             case State.SCAN_CUBE:
                 if not self.robot.cubes_remaining:
