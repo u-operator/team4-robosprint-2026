@@ -13,7 +13,7 @@ class Robot:
         self.has_cube = False
         self.line_follow = LineFollower(self.camera, self.drivetrain)
 
-    # Nav
+    # Movement
     def navigate(self, origin: str, dest: str) -> bool:
         """
             Move from origin to dest, making correct decisions at junctions.
@@ -49,9 +49,67 @@ class Robot:
         if direction == 'right':
             self.drivetrain.set_motors()
 
-    def align(self):
-        """ Align the robot with the cube """
-        pass
+    def align_to_cube(self, target_label: str) -> bool:
+        """
+        Visually center the robot on the target cube.
+        Nudges motors until cube is horizontally centered.
+        Returns True when aligned, False if cube lost.
+        """
+        ALIGN_THRESHOLD = 20  # px — acceptable offset from center
+        MAX_ATTEMPTS = 50  # give up after this many frames
+
+        for _ in range(MAX_ATTEMPTS):
+            frame = self.camera.capture()
+            h, w = frame.shape[:2]
+            cx, cy = self.camera.find_cube(frame, target_label)  # ← you implement this
+
+            if cx is None:
+                # Cube not visible — stop and fail
+                self.drivetrain.stop()
+                return False
+
+            error = cx - (w // 2)  # + = cube is right, - = cube is left
+
+            if abs(error) < ALIGN_THRESHOLD:
+                self.drivetrain.stop()
+                return True  # aligned!
+
+            # Nudge: turn toward the cube
+            correction = 0.3 * error  # small P-only gain
+            self.drivetrain.set_motors(
+                speed_left=correction,  # one side forward
+                speed_right=-correction  # other side backward = pivot turn
+            )
+
+        self.drivetrain.stop()
+        return False  # failed to align
+
+    def approach_cube(self, target_label: str) -> bool:
+        """
+        Drive slowly forward until cube fills enough of the frame (close enough).
+        Returns True when in pick range.
+        """
+        MIN_BOX_HEIGHT = 80  # px — tune based on your camera + arm reach
+        MAX_ATTEMPTS = 60
+
+        for _ in range(MAX_ATTEMPTS):
+            frame = self.camera.capture()
+            box = self.camera.get_cube_box(frame, target_label)  # (x, y, w, h)
+
+            if box is None:
+                self.drivetrain.stop()
+                return False
+
+            _, _, bw, bh = box
+
+            if bh >= MIN_BOX_HEIGHT:
+                self.drivetrain.stop()
+                return True  # close enough to pick
+
+            self.drivetrain.set_motors(40, 40)  # crawl forward
+
+        self.drivetrain.stop()
+        return False
 
     # Vision
     def scan_cube(self) -> str:
@@ -62,10 +120,17 @@ class Robot:
 
     # Arm
     def pick_cube(self):
+        label = self.scan_cube()
+        if not self.align_to_cube(label):
+            return False
+        if not self.approach_cube(label):
+            return False
+
         self.arm.lower()
         self.arm.grip()
         self.arm.raise_arm()
         self.has_cube = True
+        return True
 
     def deposit_cube(self):
         pass
