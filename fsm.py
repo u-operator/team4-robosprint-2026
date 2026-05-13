@@ -34,10 +34,6 @@ class Phase1FSM:
 
             self.step()
 
-            if self.state == State.RETURN_TO_START:
-                self.robot.navigate_to("start_zone")
-                break # Phase 1 complete
-
     def step(self):
         match self.state:
 
@@ -76,6 +72,8 @@ class Phase1FSM:
                 success = self.robot.navigate("pick zone", "storing zone")
                 if success:
                     self.state = State.DEPOSIT
+                else:
+                    self.state = State.IDLE
 
             case State.DEPOSIT:
                 self.robot.deposit_cube()

@@ -49,6 +49,10 @@ class Robot:
         if direction == 'right':
             self.drivetrain.set_motors()
 
+    def align(self):
+        """ Align the robot with the cube """
+        pass
+
     # Vision
     def scan_cube(self) -> str:
 
