@@ -120,7 +120,12 @@ class Robot:
 
     # Arm
     def pick_cube(self):
+        """
+            Scan for available cubes, align, approach then pick up the cube
+            Returns True on success. False if fail to align or approach
+        """
         label = self.scan_cube()
+
         if not self.align_to_cube(label):
             return False
         if not self.approach_cube(label):
@@ -133,10 +138,11 @@ class Robot:
         return True
 
     def deposit_cube(self):
-        pass
 
-    def place_at(self, location: str):
-        pass
+        self.arm.lower()
+        self.arm.release_grip()
+        self.arm.raise_arm()
+        self.has_cube = False
 
     # Signals
     def wait_to_start(self):
