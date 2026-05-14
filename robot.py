@@ -2,16 +2,22 @@ from camera import Camera
 from drivetrain import Drivetrain
 from arm import Arm
 from line_follow import LineFollower
+from communications.serial_bridge import SerialBridge
 
+REAL_CUBES = ['B', 'C', 'E', 'M', 'R', 'U']
+
+# TODO: Test all functions
 
 class Robot:
     def __init__(self, ip: str):
         # Initialize hardware
+        self.s_com = SerialBridge()
         self.camera = Camera(ip=ip)
-        self.drivetrain = Drivetrain()
-        self.arm = Arm()
+        self.drivetrain = Drivetrain(self.s_com)
+        self.arm = Arm(self.s_com)
         self.has_cube = False
         self.line_follow = LineFollower(self.camera, self.drivetrain)
+
 
     # Movement
     def navigate(self, origin: str, dest: str) -> bool:
@@ -44,10 +50,13 @@ class Robot:
             raise ValueError(f"No known route from '{origin}' to '{dest}'")
 
     def turn(self, direction: str):
+        """
+        Turn
+        """
         if direction == 'left':
-            self.drivetrain.set_motors()
+            self.drivetrain.set_motors(0, 100)
         if direction == 'right':
-            self.drivetrain.set_motors()
+            self.drivetrain.set_motors(100, 0)
 
     def align_to_cube(self, target_label: str) -> bool:
         """
@@ -57,6 +66,7 @@ class Robot:
         """
         ALIGN_THRESHOLD = 20  # px — acceptable offset from center
         MAX_ATTEMPTS = 50  # give up after this many frames
+        Kp = 0.3 # For error correction
 
         for _ in range(MAX_ATTEMPTS):
             frame = self.camera.capture()
@@ -75,7 +85,7 @@ class Robot:
                 return True  # aligned!
 
             # Nudge: turn toward the cube
-            correction = 0.3 * error  # small P-only gain
+            correction = int(Kp * error)  # small P-only gain
             self.drivetrain.set_motors(
                 speed_left=correction,  # one side forward
                 speed_right=-correction  # other side backward = pivot turn
@@ -85,6 +95,7 @@ class Robot:
         return False  # failed to align
 
     def approach_cube(self, target_label: str) -> bool:
+
         """
         Drive slowly forward until cube fills enough of the frame (close enough).
         Returns True when in pick range.
@@ -115,7 +126,7 @@ class Robot:
     def scan_cube(self) -> str:
 
         frame = self.camera.capture()
-        label = self.camera.read_label(frame)
+        label = self.camera.find_best_cube(frame, REAL_CUBES)
         return label
 
     # Arm
@@ -131,15 +142,15 @@ class Robot:
         if not self.approach_cube(label):
             return False
 
-        self.arm.lower()
-        self.arm.grip()
+        self.arm.lower_arm()
+        self.arm.close_grip()
         self.arm.raise_arm()
         self.has_cube = True
         return True
 
     def deposit_cube(self):
 
-        self.arm.lower()
+        self.arm.lower_arm()
         self.arm.release_grip()
         self.arm.raise_arm()
         self.has_cube = False
