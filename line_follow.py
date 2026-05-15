@@ -299,21 +299,6 @@ class LineFollower:
                           (rw, roi_top + scan_band_bot),
                           (255, 165, 0), 1)
 
-            # ── Contour centroid — debug only ────────────────────────────────
-            contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            valid_contours = [c for c in contours if cv2.contourArea(c) > 500]
-            centroid_x = None
-            if valid_contours:
-                largest = max(valid_contours, key=cv2.contourArea)
-                M = cv2.moments(largest)
-                if M["m00"] > 0:
-                    centroid_x = int(M["m10"] / M["m00"])
-                    centroid_y = int(M["m01"] / M["m00"])
-                    cv2.drawContours(frame, [largest], -1, (255, 0, 255), 1, offset=(0, roi_top))
-                    cv2.circle(frame, (centroid_x, roi_top + centroid_y), 8, (255, 0, 255), -1)
-                    cv2.putText(frame, "C", (centroid_x + 10, roi_top + centroid_y),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1)
-
             # ── Classify edge failure ──────────────────────────────────────────
             is_junction = peak_width > JUNCTION_WIDTH_THRESHOLD
 
@@ -362,11 +347,6 @@ class LineFollower:
                             (200, 200, 200), 2)
                 cv2.putText(frame, f"junc count:   {self.junction_detect_count}", (10, 198), cv2.FONT_HERSHEY_SIMPLEX,
                             0.7, (200, 200, 200), 2)
-                # MODE D extra stats (no-op for other modes since extra_stats won't be defined)
-                if 'extra_stats' in dir():
-                    for i, stat in enumerate(extra_stats):
-                        cv2.putText(frame, stat, (10, 226 + i * 28),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (180, 180, 255), 2)
             else:
                 cv2.putText(frame, "LINE LOST", (10, 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
