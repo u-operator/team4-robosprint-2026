@@ -1,11 +1,18 @@
 import cv2
 import numpy as np
 import time
+# TODO: Fix junction not detected issue
+# NOTE:
+# 1. Setting WIDE_ROW_THRESHOLD to 1 triggers the junction_detected multiple times
+# - Add a junction_detected counter
+
 
 class LineFollower:
     def __init__(self, camera, drivetrain):
         self.camera     = camera
         self.drivetrain = drivetrain
+        self.junction_detected = False
+        self.junction_detect_count = 0
 
         # PID values — tune these
         self.Kp = 0.4
@@ -13,12 +20,17 @@ class LineFollower:
         self.Kd = 0.1
         self.prev_error = 0
         self.integral   = 0
+
+
         self.FRAME_SKIP = 5 # Only do detection every FRAME_SKIP frame
-        self.junction_detected = False
+        self.BASE_SPEED = 100
+        self.WIDE_ROW_THRESHOLD = 1
+        self.JUNCTION_WIDTH_RATIO = 0.4  # tune this
+        self.JUNCTION_CONFIRM_FRAMES = 5  # frames before junction confirmed
 
     # ── Main Follow Loop ────────────────────────────
     def follow(self, stop_condition=None):
-        """ Follow line until a decision point (curve or junction)"""
+        """ Returns true when a decision point is reached (curve or junction) """
         frame_count = 0
         while True:
             if self.junction_detected:
@@ -45,8 +57,8 @@ class LineFollower:
 
             correction = self.pid(error)
             self.drivetrain.set_motors(
-                speed_left  = 100 + correction,
-                speed_right = 100 - correction
+                speed_left  = min(BASE_SPEED + correction, 255),
+                speed_right = max(BASE_SPEED - correction, -255)
             )
 
     # ── Line Detection (Edge Based) ──────────────────
@@ -84,68 +96,70 @@ class LineFollower:
     #
     #     return error
 
-    def get_line_error(self, frame) -> float:
-        roi = self.get_roi(frame)
-        h, w = roi.shape[:2]
+    def get_line_error(self, frame) -> int | None:
+        # TODO: Replace with implementation from test_visual
+        pass
+        # roi = self.get_roi(frame)
+        # h, w = .shape[:2]
+        #
+        # gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+        # blur = cv2.GaussianBlur(gray, (5, 5), 0)
+        # edges = cv2.Canny(blur, 50, 150)
+        #
+        # # Scan multiple rows instead of just one
+        # scan_rows = [
+        #     int(h * 0.6),
+        #     int(h * 0.7),
+        #     int(h * 0.8),
+        #     int(h * 0.9),
+        # ]
+        #
+        # midpoints = []
+        # wide_row_count = 0  # ← counts how many rows look like a junction
+        #
+        # for scan_row in scan_rows:
+        #     row = edges[scan_row, :]
+        #     edge_pixels = np.where(row > 0)[0]
+        #
+        #     if len(edge_pixels) < 2:
+        #         continue
+        #
+        #     # Filter out rows where line seems too wide (junction horizontal bar)
+        #     left_edge = edge_pixels[0]
+        #     right_edge = edge_pixels[-1]
+        #     line_width = right_edge - left_edge
+        #
+        #     # If line is suspiciously wide it's probably the junction bar — skip it
+        #     if line_width > w * 0.3:
+        #         wide_row_count += 1  # ← flag this row as junction-like
+        #         continue  # still skip for line following
+        #
+        #     midpoint = (left_edge + right_edge) // 2
+        #     midpoints.append(midpoint)
+        #
+        # # Junction detected?
+        # self.junction_detected = wide_row_count >= 2
+        #
+        # if not midpoints:
+        #     return None  # LINE LOST
+        #
+        # # Use median to ignore any outlier rows
+        # best_midpoint = int(np.median(midpoints))
+        # return int(best_midpoint - (w // 2)) # Error
 
-        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-        blur = cv2.GaussianBlur(gray, (5, 5), 0)
-        edges = cv2.Canny(blur, 50, 150)
-
-        # Scan multiple rows instead of just one
-        scan_rows = [
-            int(h * 0.6),
-            int(h * 0.7),
-            int(h * 0.8),
-            int(h * 0.9),
-        ]
-
-        midpoints = []
-        wide_row_count = 0  # ← counts how many rows look like a junction
-
-        for scan_row in scan_rows:
-            row = edges[scan_row, :]
-            edge_pixels = np.where(row > 0)[0]
-
-            if len(edge_pixels) < 2:
-                continue
-
-            # Filter out rows where line seems too wide (junction horizontal bar)
-            left_edge = edge_pixels[0]
-            right_edge = edge_pixels[-1]
-            line_width = right_edge - left_edge
-
-            # If line is suspiciously wide it's probably the junction bar — skip it
-            if line_width > w * 0.5:
-                wide_row_count += 1  # ← flag this row as junction-like
-                continue  # still skip for line following
-
-            midpoint = (left_edge + right_edge) // 2
-            midpoints.append(midpoint)
-
-        # Junction detected?
-        self.junction_detected = wide_row_count >= 2
-
-        if not midpoints:
-            return None  # LINE LOST
-
-        # Use median to ignore any outlier rows
-        best_midpoint = int(np.median(midpoints))
-        return best_midpoint - (w // 2) # Error
-
-    def get_roi(self, frame):
+    def get_roi(self, frame, roi_top):
         """Crop top half to remove background noise."""
         h = frame.shape[0]
-        return frame[int(h * 0.5):h, :]
+        return frame[roi_top:h, :]
 
     # ── PID ─────────────────────────────────────────
-    def pid(self, error) -> float:
+    def pid(self, error) -> int:
         self.integral  += error
         derivative      = error - self.prev_error
         self.prev_error = error
-        return (self.Kp * error +
+        return int((self.Kp * error +
                 self.Ki * self.integral +
-                self.Kd * derivative)
+                self.Kd * derivative))
 
     def reset_pid(self):
         self.prev_error = 0
@@ -169,118 +183,316 @@ class LineFollower:
 
         # Timed out — couldn't find line
         self.drivetrain.stop()
-        raise RuntimeError("Line lost: could not relocate line within timeout")
-
-
-
+        raise RuntimeError("handle_line_lost(): Line lost: could not relocate line within timeout")
 
     # ── Test Function ────────────────────────────────
     def test_visual(self):
         """
         Visualize edge detection without running motors.
         Press Q to quit, S to save snapshot.
+
+        ── Detection modes ───────────────────────────────────────────────────
+        Uncomment ONE block under "DETECTION MODE" to switch between methods.
+
+        MODE A: Width threshold (current approach)
+        MODE B: Fill ratio / contour shape
+        MODE C: Bird's eye view + width threshold
+        ──────────────────────────────────────────────────────────────────────
         """
         print("=== Edge Detection Line Follow Test ===")
         print("Q = quit | S = save snapshot")
-        print("Green dot   = midpoint between edges")
-        print("Red dots    = left and right edges")
+        print("Green dots  = midpoints per row")
+        print("Red dots    = left and right edges per row / flagged rows")
         print("Blue line   = frame center")
-        print("Yellow line = scan row")
+        print("Cyan lines  = scan rows")
+
+        # ── Bird's eye calibration (only used in MODE C) ───────────────────
+        # Tune these 4 points to match your camera's view of the floor.
+        # They should form a rectangle on the physical floor.
+        # Use test_visual() with MODE A first — add cv2.imwrite to grab a frame,
+        # then pick coordinates from that image.
+        BIRDS_EYE_SRC = np.float32([
+            [0.35, 0.0],  # top-left     (as fraction of roi w, h)
+            [0.65, 0.0],  # top-right
+            [1.0, 1.0],  # bottom-right
+            [0.0, 1.0],  # bottom-left
+        ])
 
         snapshot_count = 0
 
         while True:
             frame = self.camera.capture()
-            h, w  = frame.shape[:2]
-            roi   = self.get_roi(frame)
-            rh, rw = roi.shape[:2]
+            h, w = frame.shape[:2]
             roi_top = int(h * 0.5)
+            roi = self.get_roi(frame, roi_top)
+            rh, rw = roi.shape[:2]
 
-            # --- Edge detection ---
-            gray  = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-            blur  = cv2.GaussianBlur(gray, (5, 5), 0)
-            edges = cv2.Canny(blur, 50, 150)
 
-            # --- Scan row ---
+            junction_detected = False
+            midpoints = []
+            wide_row_count = 0
+            error = None
+            mode_label = ""
+
+            # ══════════════════════════════════════════════════════════════
+            # DETECTION MODE — uncomment exactly one block
+            # ══════════════════════════════════════════════════════════════
+
+            # # ── MODE A: Width threshold (original) ────────────────────────
+            # mode_label = "MODE A: width threshold"
+            # gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+            # blur = cv2.GaussianBlur(gray, (5, 5), 0)
+            # edges = cv2.Canny(blur, 50, 150)
+            # edges_color = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+            # scan_rows = [int(rh * 0.6), int(rh * 0.7), int(rh * 0.8), int(rh * 0.9)]
+            #
+            # for scan_row in scan_rows:
+            #     y = roi_top + scan_row
+            #     cv2.line(frame, (0, y), (w, y), (255, 255, 0), 1)
+            #     cv2.line(edges_color, (0, scan_row), (rw, scan_row), (255, 255, 0), 1)
+            #     row = edges[scan_row, :]
+            #     edge_pixels = np.where(row > 0)[0]
+            #     if len(edge_pixels) < 2:
+            #         continue
+            #     left_edge, right_edge = edge_pixels[0], edge_pixels[-1]
+            #     line_width = right_edge - left_edge
+            #     if line_width > rw * 0.3:
+            #         wide_row_count += 1
+            #         cv2.line(frame, (left_edge, y), (right_edge, y), (0, 0, 255), 2)
+            #         continue
+            #     midpoint = (left_edge + right_edge) // 2
+            #     midpoints.append(midpoint)
+            #     cv2.circle(frame, (left_edge, y), 5, (0, 0, 255), -1)
+            #     cv2.circle(frame, (right_edge, y), 5, (0, 0, 255), -1)
+            #     cv2.circle(frame, (midpoint, y), 7, (0, 255, 0), -1)
+            #
+            # if wide_row_count >= self.WIDE_ROW_THRESHOLD:
+            #     self.junction_detect_count += 1
+            # else:
+            #     self.junction_detect_count = 0
+            # junction_detected = self.junction_detect_count >= 5
+            #
+            # if midpoints:
+            #     error = int(np.median(midpoints)) - (rw // 2)
+
+            # ── MODE E: Edge detection + contour centroid + histogram ─────────────
+            mode_label = "MODE E: edge + centroid + histogram"
+
+            # LOGIC:
+            #    - Edge detection (single row) → PID correction
+            #   - Histogram peak width → classifies why edge failed:
+            #       wide peak  = junction/turn → stop
+            #       narrow peak = genuine line lost → spin to recover
+            #   - Centroid → visual debug only (shown but not used for correction)
+
+            gray      = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+            blur      = cv2.GaussianBlur(gray, (5, 5), 0)
+            edges     = cv2.Canny(blur, 50, 150)
+
+            # ── Mask + threshold ──────────────────────────────────────────────
+            hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+            mask = cv2.inRange(hsv, (0, 0, 0), (180, 255, 80))  # isolate dark pixels
+            _, binary = cv2.threshold(gray, 80, 255, cv2.THRESH_BINARY_INV)
+
+            binary = cv2.bitwise_and(binary, mask)
+            edges_color = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)  # show masked binary, not raw edges
+
+            # ── Single scan row — edge detection ──────────────────────────────
             scan_row    = int(rh * 0.8)
             row         = edges[scan_row, :]
             edge_pixels = np.where(row > 0)[0]
+            y           = roi_top + scan_row
 
-            # Convert edges to color for display
-            edges_color = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+            cv2.line(frame,       (0, y),        (w,  y),        (255, 255, 0), 1)
+            cv2.line(edges_color, (0, scan_row), (rw, scan_row), (255, 255, 0), 1)
 
-            # Draw scan row line on edge view
-            cv2.line(edges_color,
-                     (0,  scan_row),
-                     (rw, scan_row),
-                     (0, 255, 255), 1)
-
+            edge_error = None
             if len(edge_pixels) >= 2:
                 left_edge  = edge_pixels[0]
                 right_edge = edge_pixels[-1]
                 midpoint   = (left_edge + right_edge) // 2
-                error      = midpoint - (rw // 2)
+                edge_error = midpoint - (rw // 2)
+                midpoints.append(midpoint)
+                cv2.circle(frame, (left_edge,  y), 5, (0, 0, 255), -1)
+                cv2.circle(frame, (right_edge, y), 5, (0, 0, 255), -1)
+                cv2.circle(frame, (midpoint,   y), 7, (0, 255, 0), -1)
+
+            # ── Histogram — junction classifier ───────────────────────────────
+            scan_band_top = int(rh * 0.6)
+            scan_band_bot = int(rh * 0.9)
+            band          = binary[scan_band_top:scan_band_bot, :]
+            col_sum       = np.sum(band, axis=0) / 255
+            peak_width    = int(np.sum(col_sum > 0))
+            JUNCTION_WIDTH_THRESHOLD = int(rw * self.JUNCTION_WIDTH_RATIO)   # tune this
+
+            # Draw histogram on edges window
+            for x in range(rw):
+                bar_h = int(col_sum[x] * 0.1)
+                if bar_h > 0:
+                    cv2.line(edges_color, (x, rh), (x, rh - bar_h), (0, 255, 0), 1)
+
+            # Draw scan band on frame
+            cv2.rectangle(frame,
+                          (0,  roi_top + scan_band_top),
+                          (rw, roi_top + scan_band_bot),
+                          (255, 165, 0), 1)
+
+            # ── Contour centroid — debug only ────────────────────────────────
+            contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            valid_contours = [c for c in contours if cv2.contourArea(c) > 500]
+            centroid_x = None
+            if valid_contours:
+                largest = max(valid_contours, key=cv2.contourArea)
+                M = cv2.moments(largest)
+                if M["m00"] > 0:
+                    centroid_x = int(M["m10"] / M["m00"])
+                    centroid_y = int(M["m01"] / M["m00"])
+                    cv2.drawContours(frame, [largest], -1, (255, 0, 255), 1, offset=(0, roi_top))
+                    cv2.circle(frame, (centroid_x, roi_top + centroid_y), 8, (255, 0, 255), -1)
+                    cv2.putText(frame, "C", (centroid_x + 10, roi_top + centroid_y),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1)
+
+            # ── Classify edge failure ──────────────────────────────────────────
+            is_junction = peak_width > JUNCTION_WIDTH_THRESHOLD
+
+            # Histogram is always the junction classifier — regardless of edge result
+            if is_junction:
+                self.junction_detect_count += 1
+            else:
+                self.junction_detect_count = 0
+
+            # Only apply edge correction when clearly not a junction
+            if edge_error is not None and not is_junction:
+                error = edge_error
+
+            junction_detected = self.junction_detect_count >= self.JUNCTION_CONFIRM_FRAMES
+
+            # Extra stats for MODE E
+            extra_stats = [
+                f"peak width:  {peak_width}px  (thresh:{JUNCTION_WIDTH_THRESHOLD})",
+                f"edge error:  {'None' if edge_error is None else edge_error}",
+                f"centroid x:  {'None' if centroid_x is None else centroid_x}",
+                f"is_junction: {is_junction}",
+            ]
+
+            # # ── MODE D: Contour centroid + histogram ──────────────────────────────
+            # mode_label = "MODE D: contour centroid + histogram"
+            # gray      = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+            # _, binary = cv2.threshold(gray, 80, 255, cv2.THRESH_BINARY_INV)
+            # edges_color = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
+            #
+            # # ── Contour centroid — line position ──────────────────────────────
+            # contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            # valid_contours = [c for c in contours if cv2.contourArea(c) > 500]
+            #
+            # if valid_contours:
+            #     largest = max(valid_contours, key=cv2.contourArea)
+            #     M       = cv2.moments(largest)
+            #     if M["m00"] > 0:
+            #         cx = int(M["m10"] / M["m00"])
+            #         cy = int(M["m01"] / M["m00"])
+            #         error = cx - (rw // 2)
+            #         midpoints.append(cx)
+            #
+            #         # Draw contour and centroid on frame
+            #         cv2.drawContours(frame, [largest], -1, (0, 255, 0), 2,
+            #                          offset=(0, roi_top))
+            #         cv2.circle(frame, (cx, roi_top + cy), 8, (0, 255, 255), -1)
+            #         cv2.putText(frame, "centroid", (cx + 10, roi_top + cy),
+            #                     cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 255), 1)
+            #
+            # # ── Histogram — junction detection ────────────────────────────────
+            # # Sum dark pixels column-wise across scan rows only (not full ROI)
+            # scan_band_top = int(rh * 0.6)
+            # scan_band_bot = int(rh * 0.9)
+            # band          = binary[scan_band_top:scan_band_bot, :]
+            #
+            # col_sum   = np.sum(band, axis=0) / 255   # dark pixel count per column
+            # total_dark = int(np.sum(col_sum))
+            # peak_width = int(np.sum(col_sum > 0))    # how many columns have any dark pixels
+            #
+            # # Draw histogram on edges_color window
+            # hist_scale = 0.1
+            # for x in range(rw):
+            #     bar_h = int(col_sum[x] * hist_scale)
+            #     if bar_h > 0:
+            #         cv2.line(edges_color,
+            #                  (x, rh),
+            #                  (x, rh - bar_h),
+            #                  (0, 255, 0), 1)
+            #
+            # # Draw scan band on frame
+            # cv2.rectangle(frame,
+            #               (0,  roi_top + scan_band_top),
+            #               (rw, roi_top + scan_band_bot),
+            #               (255, 165, 0), 1)
+            # cv2.putText(frame, "scan band", (5, roi_top + scan_band_top - 5),
+            #             cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 165, 0), 1)
+            #
+            # # Junction = peak is suspiciously wide (horizontal bar adds many dark columns)
+            # JUNCTION_WIDTH_THRESHOLD = int(rw * 0.4)   # tune this
+            # if peak_width > JUNCTION_WIDTH_THRESHOLD:
+            #     wide_row_count += 1   # reuse wide_row_count so shared display still works
+            #
+            # if wide_row_count >= self.WIDE_ROW_THRESHOLD:
+            #     self.junction_detect_count += 1
+            # else:
+            #     self.junction_detect_count = 0
+            # junction_detected = self.junction_detect_count >= 5
+            #
+            # # Extra stats for MODE D
+            # extra_stats = [
+            #     f"peak width:  {peak_width}px  (thresh:{JUNCTION_WIDTH_THRESHOLD})",
+            #     f"total dark:  {total_dark}px",
+            # ]
+
+            # ══════════════════════════════════════════════════════════════
+            # DISPLAY — shared across all modes
+            # ══════════════════════════════════════════════════════════════
+
+            cv2.putText(frame, mode_label, (10, h - 80),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, (200, 200, 50), 2)
+
+            if error is not None:
+                spread = (max(midpoints) - min(midpoints)) if len(midpoints) > 1 else 0
                 correction = self.pid(error)
-
-                # Draw on full frame (adjust y by roi_top)
-                y = roi_top + scan_row
-
-                # Red dot — left edge
-                cv2.circle(frame, (left_edge, y), 8, (0, 0, 255), -1)
-                cv2.putText(frame, "L", (left_edge - 15, y - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-
-                # Red dot — right edge
-                cv2.circle(frame, (right_edge, y), 8, (0, 0, 255), -1)
-                cv2.putText(frame, "R", (right_edge + 5, y - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-
-                # Green dot — midpoint
-                cv2.circle(frame, (midpoint, y), 10, (0, 255, 0), -1)
-
-                # Line width indicator
-                line_width = right_edge - left_edge
-                cv2.line(frame, (left_edge, y + 15), (right_edge, y + 15),
-                         (0, 255, 0), 2)
-
-                # Stats overlay
-                cv2.putText(frame, f"error:      {error}px",       (10, 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-                cv2.putText(frame, f"correction: {correction:.2f}", (10, 58),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
-                cv2.putText(frame, f"L motor:    {100 + correction:.0f}", (10, 86),
+                best_midpoint = int(np.median(midpoints))
+                cv2.circle(frame, (best_midpoint + rw // 2, roi_top + int(rh * 0.75)), 10, (0, 255, 255), -1)
+                cv2.putText(frame, f"error:        {error}px", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                cv2.putText(frame, f"correction:   {correction:.2f}", (10, 58), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                            (0, 200, 255), 2)
+                cv2.putText(frame, f"L motor:      {self.BASE_SPEED + correction:.0f}", (10, 86),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 200, 0), 2)
-                cv2.putText(frame, f"R motor:    {100 - correction:.0f}", (10, 114),
+                cv2.putText(frame, f"R motor:      {self.BASE_SPEED - correction:.0f}", (10, 114),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 200, 0), 2)
-                cv2.putText(frame, f"line width: {line_width}px",   (10, 142),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200, 200, 200), 2)
-
+                cv2.putText(frame, f"midpt spread: {spread}px", (10, 142), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                            (200, 200, 200), 2)
+                cv2.putText(frame, f"wide rows:    {wide_row_count}", (10, 170), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                            (200, 200, 200), 2)
+                cv2.putText(frame, f"junc count:   {self.junction_detect_count}", (10, 198), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.7, (200, 200, 200), 2)
+                # MODE D extra stats (no-op for other modes since extra_stats won't be defined)
+                if 'extra_stats' in dir():
+                    for i, stat in enumerate(extra_stats):
+                        cv2.putText(frame, stat, (10, 226 + i * 28),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (180, 180, 255), 2)
             else:
                 cv2.putText(frame, "LINE LOST", (10, 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
 
-            # Junction banner — big and obvious
-            if self.junction_detected:
-                # Dark orange background box
+            if junction_detected:
                 cv2.rectangle(frame, (0, h - 60), (w, h), (0, 100, 200), -1)
                 cv2.putText(frame, "JUNCTION DETECTED",
                             (w // 2 - 160, h - 20),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
 
-            # Blue center line
             cv2.line(frame, (w // 2, 0), (w // 2, h), (255, 0, 0), 2)
-
-            # Yellow scan row line on full frame
-            cv2.line(frame, (0, roi_top + scan_row), (w, roi_top + scan_row),
-                     (0, 255, 255), 1)
-
-            # ROI box
             cv2.rectangle(frame, (0, roi_top), (w, h), (0, 255, 255), 2)
             cv2.putText(frame, "ROI", (5, roi_top - 5),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
 
             cv2.imshow("Line Follow - Camera View", frame)
-            cv2.imshow("Line Follow - Edges",       edges_color)
+            cv2.imshow("Line Follow - Edges / Binary", edges_color)
 
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
@@ -303,10 +515,9 @@ if __name__ == "__main__":
         def stop(self): pass
         def set_motors(self, speed_left, speed_right): pass
 
-    cam = Camera(ip="2.58.120.241", flip=-1)   # ← replace with your phone's IP
+    cam = Camera(ip="10.42.2.24", flip=-1)   # ← replace with your phone's IP
     lf  = LineFollower(cam, MockDrivetrain())
     lf.test_visual()
-
 
 """
 Issue 1 — T Junction & Curves
