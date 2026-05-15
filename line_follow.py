@@ -237,44 +237,6 @@ class LineFollower:
             # ══════════════════════════════════════════════════════════════
             # DETECTION MODE — uncomment exactly one block
             # ══════════════════════════════════════════════════════════════
-
-            # # ── MODE A: Width threshold (original) ────────────────────────
-            # mode_label = "MODE A: width threshold"
-            # gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-            # blur = cv2.GaussianBlur(gray, (5, 5), 0)
-            # edges = cv2.Canny(blur, 50, 150)
-            # edges_color = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
-            # scan_rows = [int(rh * 0.6), int(rh * 0.7), int(rh * 0.8), int(rh * 0.9)]
-            #
-            # for scan_row in scan_rows:
-            #     y = roi_top + scan_row
-            #     cv2.line(frame, (0, y), (w, y), (255, 255, 0), 1)
-            #     cv2.line(edges_color, (0, scan_row), (rw, scan_row), (255, 255, 0), 1)
-            #     row = edges[scan_row, :]
-            #     edge_pixels = np.where(row > 0)[0]
-            #     if len(edge_pixels) < 2:
-            #         continue
-            #     left_edge, right_edge = edge_pixels[0], edge_pixels[-1]
-            #     line_width = right_edge - left_edge
-            #     if line_width > rw * 0.3:
-            #         wide_row_count += 1
-            #         cv2.line(frame, (left_edge, y), (right_edge, y), (0, 0, 255), 2)
-            #         continue
-            #     midpoint = (left_edge + right_edge) // 2
-            #     midpoints.append(midpoint)
-            #     cv2.circle(frame, (left_edge, y), 5, (0, 0, 255), -1)
-            #     cv2.circle(frame, (right_edge, y), 5, (0, 0, 255), -1)
-            #     cv2.circle(frame, (midpoint, y), 7, (0, 255, 0), -1)
-            #
-            # if wide_row_count >= self.WIDE_ROW_THRESHOLD:
-            #     self.junction_detect_count += 1
-            # else:
-            #     self.junction_detect_count = 0
-            # junction_detected = self.junction_detect_count >= 5
-            #
-            # if midpoints:
-            #     error = int(np.median(midpoints)) - (rw // 2)
-
             # ── MODE E: Edge detection + contour centroid + histogram ─────────────
             mode_label = "MODE E: edge + centroid + histogram"
 
@@ -374,77 +336,6 @@ class LineFollower:
                 f"centroid x:  {'None' if centroid_x is None else centroid_x}",
                 f"is_junction: {is_junction}",
             ]
-
-            # # ── MODE D: Contour centroid + histogram ──────────────────────────────
-            # mode_label = "MODE D: contour centroid + histogram"
-            # gray      = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-            # _, binary = cv2.threshold(gray, 80, 255, cv2.THRESH_BINARY_INV)
-            # edges_color = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
-            #
-            # # ── Contour centroid — line position ──────────────────────────────
-            # contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            # valid_contours = [c for c in contours if cv2.contourArea(c) > 500]
-            #
-            # if valid_contours:
-            #     largest = max(valid_contours, key=cv2.contourArea)
-            #     M       = cv2.moments(largest)
-            #     if M["m00"] > 0:
-            #         cx = int(M["m10"] / M["m00"])
-            #         cy = int(M["m01"] / M["m00"])
-            #         error = cx - (rw // 2)
-            #         midpoints.append(cx)
-            #
-            #         # Draw contour and centroid on frame
-            #         cv2.drawContours(frame, [largest], -1, (0, 255, 0), 2,
-            #                          offset=(0, roi_top))
-            #         cv2.circle(frame, (cx, roi_top + cy), 8, (0, 255, 255), -1)
-            #         cv2.putText(frame, "centroid", (cx + 10, roi_top + cy),
-            #                     cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 255), 1)
-            #
-            # # ── Histogram — junction detection ────────────────────────────────
-            # # Sum dark pixels column-wise across scan rows only (not full ROI)
-            # scan_band_top = int(rh * 0.6)
-            # scan_band_bot = int(rh * 0.9)
-            # band          = binary[scan_band_top:scan_band_bot, :]
-            #
-            # col_sum   = np.sum(band, axis=0) / 255   # dark pixel count per column
-            # total_dark = int(np.sum(col_sum))
-            # peak_width = int(np.sum(col_sum > 0))    # how many columns have any dark pixels
-            #
-            # # Draw histogram on edges_color window
-            # hist_scale = 0.1
-            # for x in range(rw):
-            #     bar_h = int(col_sum[x] * hist_scale)
-            #     if bar_h > 0:
-            #         cv2.line(edges_color,
-            #                  (x, rh),
-            #                  (x, rh - bar_h),
-            #                  (0, 255, 0), 1)
-            #
-            # # Draw scan band on frame
-            # cv2.rectangle(frame,
-            #               (0,  roi_top + scan_band_top),
-            #               (rw, roi_top + scan_band_bot),
-            #               (255, 165, 0), 1)
-            # cv2.putText(frame, "scan band", (5, roi_top + scan_band_top - 5),
-            #             cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 165, 0), 1)
-            #
-            # # Junction = peak is suspiciously wide (horizontal bar adds many dark columns)
-            # JUNCTION_WIDTH_THRESHOLD = int(rw * 0.4)   # tune this
-            # if peak_width > JUNCTION_WIDTH_THRESHOLD:
-            #     wide_row_count += 1   # reuse wide_row_count so shared display still works
-            #
-            # if wide_row_count >= self.WIDE_ROW_THRESHOLD:
-            #     self.junction_detect_count += 1
-            # else:
-            #     self.junction_detect_count = 0
-            # junction_detected = self.junction_detect_count >= 5
-            #
-            # # Extra stats for MODE D
-            # extra_stats = [
-            #     f"peak width:  {peak_width}px  (thresh:{JUNCTION_WIDTH_THRESHOLD})",
-            #     f"total dark:  {total_dark}px",
-            # ]
 
             # ══════════════════════════════════════════════════════════════
             # DISPLAY — shared across all modes
