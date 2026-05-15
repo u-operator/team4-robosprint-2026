@@ -4,7 +4,7 @@ import time
 # TODO: Fix junction not detected issue
 # NOTE:
 # 1. Setting WIDE_ROW_THRESHOLD to 1 triggers the junction_detected multiple times
-# - Add a junction_detected counter
+# - Add a junction_detected counter X
 
 
 class LineFollower:
@@ -29,7 +29,7 @@ class LineFollower:
         self.JUNCTION_CONFIRM_FRAMES = 5  # frames before junction confirmed
 
     # ── Main Follow Loop ────────────────────────────
-    def follow(self, stop_condition=None):
+    def follow_until_decision(self, stop_condition=None):
         """ Returns true when a decision point is reached (curve or junction) """
         frame_count = 0
         while True:
@@ -61,91 +61,15 @@ class LineFollower:
                 speed_right = max(BASE_SPEED - correction, -255)
             )
 
-    # ── Line Detection (Edge Based) ──────────────────
-    # def get_line_error(self, frame) -> float:
-    #     """
-    #     Detects left and right edges of the line.
-    #     Returns how far the midpoint between edges is from frame center.
-    #     Negative = line is left, Positive = line is right.
-    #     Returns None if edges not found.
-    #     """
-    #     roi = self.get_roi(frame)
-    #     h, w = roi.shape[:2]
-    #
-    #     gray  = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-    #     blur  = cv2.GaussianBlur(gray, (5, 5), 0)
-    #     edges = cv2.Canny(blur, 50, 150)  # tweak these thresholds if needed
-    #
-    #     # Scan a horizontal slice near the bottom of the ROI
-    #     # (closest part of line to robot = most reliable)
-    #     scan_row = int(h * 0.8)
-    #     row      = edges[scan_row, :]
-    #
-    #     # Find all edge pixel positions in that row
-    #     edge_pixels = np.where(row > 0)[0]
-    #
-    #     if len(edge_pixels) < 2:
-    #         return None  # not enough edges found
-    #
-    #     left_edge  = edge_pixels[0]         # leftmost edge
-    #     right_edge = edge_pixels[-1]        # rightmost edge
-    #     midpoint   = (left_edge + right_edge) // 2
-    #
-    #     frame_center = w // 2
-    #     error        = midpoint - frame_center
-    #
-    #     return error
-
+    def follow_until_zone(self):
+        # Same algorithm as follow_until_decision
+        # Except will detect zone boundaries instead
+        # Zone boundary: T junction with black straight and white left & right
+        # TODO: Implement this
+        pass
     def get_line_error(self, frame) -> int | None:
         # TODO: Replace with implementation from test_visual
         pass
-        # roi = self.get_roi(frame)
-        # h, w = .shape[:2]
-        #
-        # gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-        # blur = cv2.GaussianBlur(gray, (5, 5), 0)
-        # edges = cv2.Canny(blur, 50, 150)
-        #
-        # # Scan multiple rows instead of just one
-        # scan_rows = [
-        #     int(h * 0.6),
-        #     int(h * 0.7),
-        #     int(h * 0.8),
-        #     int(h * 0.9),
-        # ]
-        #
-        # midpoints = []
-        # wide_row_count = 0  # ← counts how many rows look like a junction
-        #
-        # for scan_row in scan_rows:
-        #     row = edges[scan_row, :]
-        #     edge_pixels = np.where(row > 0)[0]
-        #
-        #     if len(edge_pixels) < 2:
-        #         continue
-        #
-        #     # Filter out rows where line seems too wide (junction horizontal bar)
-        #     left_edge = edge_pixels[0]
-        #     right_edge = edge_pixels[-1]
-        #     line_width = right_edge - left_edge
-        #
-        #     # If line is suspiciously wide it's probably the junction bar — skip it
-        #     if line_width > w * 0.3:
-        #         wide_row_count += 1  # ← flag this row as junction-like
-        #         continue  # still skip for line following
-        #
-        #     midpoint = (left_edge + right_edge) // 2
-        #     midpoints.append(midpoint)
-        #
-        # # Junction detected?
-        # self.junction_detected = wide_row_count >= 2
-        #
-        # if not midpoints:
-        #     return None  # LINE LOST
-        #
-        # # Use median to ignore any outlier rows
-        # best_midpoint = int(np.median(midpoints))
-        # return int(best_midpoint - (w // 2)) # Error
 
     def get_roi(self, frame, roi_top):
         """Crop top half to remove background noise."""
@@ -206,18 +130,6 @@ class LineFollower:
         print("Blue line   = frame center")
         print("Cyan lines  = scan rows")
 
-        # ── Bird's eye calibration (only used in MODE C) ───────────────────
-        # Tune these 4 points to match your camera's view of the floor.
-        # They should form a rectangle on the physical floor.
-        # Use test_visual() with MODE A first — add cv2.imwrite to grab a frame,
-        # then pick coordinates from that image.
-        BIRDS_EYE_SRC = np.float32([
-            [0.35, 0.0],  # top-left     (as fraction of roi w, h)
-            [0.65, 0.0],  # top-right
-            [1.0, 1.0],  # bottom-right
-            [0.0, 1.0],  # bottom-left
-        ])
-
         snapshot_count = 0
 
         while True:
@@ -239,13 +151,14 @@ class LineFollower:
             # ══════════════════════════════════════════════════════════════
             # ── MODE E: Edge detection + contour centroid + histogram ─────────────
             mode_label = "MODE E: edge + centroid + histogram"
+            # TODO: Tune the (JUNCTION_WIDTH_RATIO) threshold for junction pixel threshold as it might vary based on height and angle of the phone camera
+            # TODO: Tune roi_top for the same reason
 
             # LOGIC:
             #    - Edge detection (single row) → PID correction
             #   - Histogram peak width → classifies why edge failed:
             #       wide peak  = junction/turn → stop
             #       narrow peak = genuine line lost → spin to recover
-            #   - Centroid → visual debug only (shown but not used for correction)
 
             gray      = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
             blur      = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -285,7 +198,7 @@ class LineFollower:
             band          = binary[scan_band_top:scan_band_bot, :]
             col_sum       = np.sum(band, axis=0) / 255
             peak_width    = int(np.sum(col_sum > 0))
-            JUNCTION_WIDTH_THRESHOLD = int(rw * self.JUNCTION_WIDTH_RATIO)   # tune this
+            JUNCTION_WIDTH_THRESHOLD = int(rw * self.JUNCTION_WIDTH_RATIO)
 
             # Draw histogram on edges window
             for x in range(rw):
@@ -318,7 +231,6 @@ class LineFollower:
             extra_stats = [
                 f"peak width:  {peak_width}px  (thresh:{JUNCTION_WIDTH_THRESHOLD})",
                 f"edge error:  {'None' if edge_error is None else edge_error}",
-                f"centroid x:  {'None' if centroid_x is None else centroid_x}",
                 f"is_junction: {is_junction}",
             ]
 
@@ -347,8 +259,9 @@ class LineFollower:
                             (200, 200, 200), 2)
                 cv2.putText(frame, f"junc count:   {self.junction_detect_count}", (10, 198), cv2.FONT_HERSHEY_SIMPLEX,
                             0.7, (200, 200, 200), 2)
+
             else:
-                cv2.putText(frame, "LINE LOST", (10, 30),
+                cv2.putText(frame, "LINE LOST", (10, 210),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
 
             if junction_detected:
@@ -391,144 +304,12 @@ if __name__ == "__main__":
     lf.test_visual()
 
 """
-Issue 1 — T Junction & Curves
-The problem is scanning only one row — at a T junction the horizontal bar creates many edge pixels that confuse the left/right edge detection:
-normal line:          T junction scan row hits:
-    |                 ────────────────
-    |                 ← too many edges, error spikes
-    |                 
-  L   R               L             R
-  ●   ●               ●             ●
-  midpoint ok         midpoint way off
-  
-Fix — Multi-row scanning + vote for most consistent result:
-def get_line_error(self, frame) -> float:
-    roi = self.get_roi(frame)
-    h, w = roi.shape[:2]
-
-    gray  = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-    blur  = cv2.GaussianBlur(gray, (5, 5), 0)
-    edges = cv2.Canny(blur, 50, 150)
-
-    # Scan multiple rows instead of just one
-    scan_rows = [
-        int(h * 0.6),
-        int(h * 0.7),
-        int(h * 0.8),
-        int(h * 0.9),
-    ]
-
-    midpoints = []
-
-    for scan_row in scan_rows:
-        row         = edges[scan_row, :]
-        edge_pixels = np.where(row > 0)[0]
-
-        if len(edge_pixels) < 2:
-            continue
-
-        # Filter out rows where line seems too wide (junction horizontal bar)
-        left_edge  = edge_pixels[0]
-        right_edge = edge_pixels[-1]
-        line_width = right_edge - left_edge
-
-        # If line is suspiciously wide it's probably the junction bar — skip it
-        if line_width > w * 0.5:
-            continue
-
-        midpoint = (left_edge + right_edge) // 2
-        midpoints.append(midpoint)
-
-    if not midpoints:
-        return None  # LINE LOST
-
-    # Use median to ignore any outlier rows
-    best_midpoint = int(np.median(midpoints))
-    return best_midpoint - (w // 2)
-Why this works at junctions and curves:
-T junction:              Curve:
-                    
-row 0.6: ──────── ← wide, SKIPPED     row 0.6:   /  ← ok
-row 0.7:   |      ← ok ✓              row 0.7:  /   ← ok
-row 0.8:   |      ← ok ✓              row 0.8: /    ← ok
-row 0.9:   |      ← ok ✓              row 0.9:|     ← ok
-
-median of ok rows = stable midpoint   median = smooth curve tracking
-
-Issue 2 — Speed
-Yes this is a real concern. Here's the breakdown:
-StepApprox timecamera.capture() over WiFi~50–100ms ← biggest bottleneckcv2.cvtColor + GaussianBlur~2–5mscv2.Canny~3–8msMulti-row scan~1msTotal~60–120ms per frame
-That's only 8–15 FPS which may be too slow for fast motor correction.
-Fix 1 — Reduce resolution in IP Webcam app
-640x480 → too slow
-320x240 → sweet spot ✓
-Lower resolution = less data over WiFi = faster capture.
-Fix 2 — Resize frame immediately after capture
-pythondef capture(self):
-    ret, frame = self.cap.read()
-    if not ret:
-        raise RuntimeError("No frame from IP webcam")
-
-    # Resize immediately — all processing after this is faster
-    frame = cv2.resize(frame, (320, 240))
-
-    if self.flip:
-        frame = cv2.rotate(frame, cv2.ROTATE_180)
-
-    return frame
-Fix 3 — Skip frames
-pythondef follow(self, stop_condition=None):
-    frame_count = 0
-
-    while True:
-        if stop_condition and stop_condition():
-            self.drivetrain.stop()
-            break
-
-        frame = self.camera.capture()
-        frame_count += 1
-
-        # Only run detection every 2nd frame
-        if frame_count % 2 != 0:
-            continue
-
-        error = self.get_line_error(frame)
-        ...
 Fix 4 — Reduce ROI further
-pythondef get_roi(self, frame):
+def get_roi(self, frame):
     h = frame.shape[0]
     # Process less pixels = faster
     return frame[int(h * 0.7):h, :]  # only bottom 30%
-
-Realistic Speed After Fixes
-Fix appliedEstimated FPSBaseline 640x480~8 FPSResize to 320x240~15 FPSSmaller ROI~20 FPSSkip every 2nd frame~25 FPS effective
-20–25 FPS should be sufficient for line following at moderate robot speed. If your robot moves slowly, even 15 FPS is fine.
-
-One More Suggestion — Slow Down at Junctions
-Instead of trying to perfectly handle junctions in vision, just slow the motors when a junction is detected:
-pythondef get_line_error(self, frame):
-    # ... existing code ...
-
-    # If valid rows are fewer than expected, probably near junction
-    if len(midpoints) < 2:
-        self.junction_detected = True
-    else:
-        self.junction_detected = False
-
-    return best_midpoint - (w // 2)
-
-def follow(self, stop_condition=None):
-    while True:
-        ...
-        error      = self.get_line_error(frame)
-        correction = self.pid(error)
-
-        # Slow down near junction for more stable detection
-        speed = 60 if self.junction_detected else 100
-
-        self.drivetrain.set_motors(
-            speed_left  = speed + correction,
-            speed_right = speed - correction
-        )
 """
+
+
 
