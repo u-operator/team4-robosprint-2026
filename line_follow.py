@@ -27,7 +27,6 @@ class LineFollower:
         self.WIDE_ROW_THRESHOLD = 1
         self.JUNCTION_WIDTH_RATIO = 0.4  # tune this
         self.JUNCTION_CONFIRM_FRAMES = 5  # frames before junction confirmed
-
     # ── Main Follow Loop ────────────────────────────
     def follow_until_decision(self, stop_condition=None):
         """ Returns true when a decision point is reached (curve or junction) """
@@ -67,6 +66,7 @@ class LineFollower:
         # Zone boundary: T junction with black straight and white left & right
         # TODO: Implement this
         pass
+
     def get_line_error(self, frame) -> int | None:
         # TODO: Replace with implementation from test_visual
         pass
@@ -76,7 +76,6 @@ class LineFollower:
         h = frame.shape[0]
         return frame[roi_top:h, :]
 
-    # ── PID ─────────────────────────────────────────
     def pid(self, error) -> int:
         self.integral  += error
         derivative      = error - self.prev_error
@@ -89,7 +88,6 @@ class LineFollower:
         self.prev_error = 0
         self.integral   = 0
 
-    # ── Line Lost Handling ───────────────────────────
     def handle_line_lost(self, timeout=2.0):
         self.drivetrain.stop()
         start_time = time.time()
@@ -108,6 +106,26 @@ class LineFollower:
         # Timed out — couldn't find line
         self.drivetrain.stop()
         raise RuntimeError("handle_line_lost(): Line lost: could not relocate line within timeout")
+
+    def creep_until_line(self, timeout=5.0, creep_speed=40):
+        """
+        Drive slowly forward until the line is visible in frame.
+        Call this before follow_until_decision() when the robot
+        may be too close or misaligned to see the line immediately.
+        Returns True if line found, False if timed out.
+        """
+        start = time.time()
+        while time.time() - start < timeout:
+            frame = self.camera.capture()
+            error = self.get_line_error(frame)
+            if error is not None:
+                self.drivetrain.stop()
+                self.reset_pid()
+                return True
+            self.drivetrain.set_motors(creep_speed, creep_speed)
+
+        self.drivetrain.stop()
+        return False
 
     # ── Test Function ────────────────────────────────
     def test_visual(self):
@@ -290,8 +308,8 @@ class LineFollower:
         cv2.destroyAllWindows()
         print("Test ended.")
 
-
-# ── Run directly ─────────────────────────────────
+    # --
+# ── Run directly ────────────────────────────────
 if __name__ == "__main__":
     from camera import Camera
 
