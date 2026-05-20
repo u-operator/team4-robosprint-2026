@@ -19,6 +19,10 @@
 #   0x04  GRIP        state       0x00          0x00        0x00
 #   0x05  ARM         state       0x00          0x00        0x00
 #
+# For debugging
+#   Moves the arm elevator incrementally
+#   0xD0  EUP        step_size   0x00         0x00         0x00
+#   0xD1  EDOWN      step_size   0x00         0x00         0x00
 #
 #   MOTORS:
 #     left_dir / right_dir  : 0x00 = forward, 0x01 = reverse
@@ -45,6 +49,9 @@ CMD_STOP   = 0x02
 CMD_SERVO  = 0x03
 CMD_GRIP   = 0x04
 CMD_ARM = 0x05
+
+CMD_EUP = 0xD0
+CMD_EDOWN = 0xD1
 
 # Motor directions
 MT_FWD = 0x00 # Forward
