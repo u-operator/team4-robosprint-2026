@@ -32,26 +32,27 @@ class Robot:
         # --- Routes that pass through a junction or curves
         # Decisions to take when junction or curve detected
         routes = {
-            ("pick_zone", "storing_zone"): ['left', 'left'],
-            ("storing_zone", "pick_zone"): ['right', 'right'],
-            ('start_zone', 'pick_zone'): ['left']
+            ("pick zone", "storing zone"): ['left', 'left'],
+            ("storing zone", "pick zone"): ['right', 'right'],
+            ('start zone', 'pick zone'): ['left']
         }
 
         if (origin, dest) in routes:
             decisions = routes[(origin, dest)]
-            decision_cnt = 0
+
             for decision in decisions:
-                reached_junction = self.line_follow.follow()
+                reached_junction = self.line_follow.follow_until_decision()
                 if reached_junction:
-                    self.turn(decision[decision_cnt])
+                    self.turn(decision)
                 elif reached_junction is None: # LINE LOST
                     return False
+            self.line_follow.follow_until_zone()
         else:
             raise ValueError(f"No known route from '{origin}' to '{dest}'")
 
     def turn(self, direction: str):
         """
-        Turn
+        Turn`
         """
         if direction == 'left':
             self.drivetrain.set_motors(0, 100)
