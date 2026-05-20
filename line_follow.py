@@ -29,7 +29,12 @@ class LineFollower:
         self.JUNCTION_CONFIRM_FRAMES = 5  # frames before junction confirmed
     # ── Main Follow Loop ────────────────────────────
     def follow_until_decision(self, stop_condition=None):
-        """ Returns true when a decision point is reached (curve or junction) """
+        """
+            Follow the black line
+
+            Returns True when a decision point is reached (curve or junction)
+            Returns None when the line is lost
+        """
         frame_count = 0
         while True:
             if self.junction_detected:
@@ -56,8 +61,8 @@ class LineFollower:
 
             correction = self.pid(error)
             self.drivetrain.set_motors(
-                speed_left  = min(BASE_SPEED + correction, 255),
-                speed_right = max(BASE_SPEED - correction, -255)
+                speed_left  = min(self.BASE_SPEED + correction, 255),
+                speed_right = max(self.BASE_SPEED - correction, -255)
             )
 
     def follow_until_zone(self):
@@ -85,10 +90,19 @@ class LineFollower:
                 self.Kd * derivative))
 
     def reset_pid(self):
+        """
+            Reset the PID integral and prev_error to 0
+        """
         self.prev_error = 0
         self.integral   = 0
 
     def handle_line_lost(self, timeout=2.0):
+        """
+        Called by follow functions in the event of LINE LOST
+
+        :param timeout: time in seconds to spend searching for the line
+        :return: On success, return back to follow. On failure, stop the robot and raise RuntimeError
+        """
         self.drivetrain.stop()
         start_time = time.time()
 
@@ -135,10 +149,6 @@ class LineFollower:
 
         ── Detection modes ───────────────────────────────────────────────────
         Uncomment ONE block under "DETECTION MODE" to switch between methods.
-
-        MODE A: Width threshold (current approach)
-        MODE B: Fill ratio / contour shape
-        MODE C: Bird's eye view + width threshold
         ──────────────────────────────────────────────────────────────────────
         """
         print("=== Edge Detection Line Follow Test ===")
