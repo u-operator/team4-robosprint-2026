@@ -3,8 +3,22 @@ import threading
 import communications.protocol as pcl
 from communications.serial_bridge import SerialBridge
 import time
+import serial
+ser = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.1)
 
-serial = SerialBridge()
+time.sleep(2)
+
+print("connected")
+
+while True:
+    ser.write(bytes([255]))
+
+    while ser.in_waiting:
+        print(ser.readline().decode(errors="ignore").strip())
+
+    time.sleep(1)
+
+# serial = SerialBridge()
 # def read_serial():
 #     while True:
 #         try:
