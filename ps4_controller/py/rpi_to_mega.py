@@ -5,17 +5,17 @@ from communications.serial_bridge import SerialBridge
 import time
 
 serial = SerialBridge()
-def read_serial():
-    while True:
-        try:
-
-            line = serial.ser.readline().decode(errors="ignore").strip()
-            if line:
-                print("[MEGA]", line)
-        except:
-            pass
-
-threading.Thread(target=read_serial, daemon=True).start()
+# def read_serial():
+#     while True:
+#         try:
+#
+#             line = serial.ser.readline().decode(errors="ignore").strip()
+#             if line:
+#                 print("[MEGA]", line)
+#         except:
+#             pass
+#
+# threading.Thread(target=read_serial, daemon=True).start()
 
 pygame.init()
 pygame.joystick.init()
