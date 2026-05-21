@@ -98,50 +98,6 @@ void loop()
         break;
       }
 
-//       // ==========================================
-//       // B. ELEVATOR CONTROL (D-PAD)
-//       // ==========================================
-//       case CMD_ARM:
-//       {
-//         if (pkt.b1 == A_UP) {
-//           Serial.println("ARM UP");
-//           // moveElevator(1);
-//         }
-//         else {
-//           Serial.println("ARM DOWN");
-//           // moveElevator(-1);
-//         }
-//
-//         break;
-//       }
-
-//       // ==========================================
-//       // C. GRIPPER CONTROL (Shoulders)
-//       // ==========================================
-//       case CMD_GRIP:
-//       {
-//         if (pkt.b1 == G_CLOSE) {
-//           Serial.println("GRIP CLOSE");
-//           // setGripperState(true);
-//         }
-//         else {
-//           Serial.println("GRIP OPEN");
-//           // setGripperState(false);
-//         }
-
-//         break;
-//       }
-//
-//       case CMD_SERVO:
-//       {
-//         Serial.print("SERVO ");
-//         Serial.print(pkt.b1);
-//         Serial.print(" ANGLE ");
-//         Serial.println(pkt.b2);
-//
-//         break;
-//       }
-
       default:
       {
         Serial.println("ERR");
