@@ -118,7 +118,7 @@ void handlePacket()
     // -------------------------
     // STEP UP
     // -------------------------
-    case 0x06:
+    case CMD_EUP:
     {
       stepSize = pkt.b1;
       armTarget += stepSize;
@@ -130,7 +130,7 @@ void handlePacket()
     // -------------------------
     // STEP DOWN
     // -------------------------
-    case 0x07:
+    case CMD_EDOWN:
     {
       stepSize = pkt.b1;
       armTarget -= stepSize;
