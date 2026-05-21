@@ -19,6 +19,8 @@
 #define CMD_SERVO  0x03
 #define CMD_GRIP   0x04
 #define CMD_ARM    0x05
+#define CMD_EDOWN  0xD1
+#define CMD_EUP    0xD0
 
 // ── Motor Directions ────────────────────────────────────
 
