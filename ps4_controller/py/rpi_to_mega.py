@@ -54,7 +54,7 @@ while True:
 
 
     # Send to MEGA
-    packet = pcl.build_packet(pcl.CMD_MOTORS, l_dir, left_speed, r_dir, right_speed)
+    packet = pcl.build_packet(pcl.CMD_MOTORS, l_dir, abs(left_speed), r_dir, abs(right_speed))
     serial.send_no_wait(packet)
 
     if hat_y == 1:
