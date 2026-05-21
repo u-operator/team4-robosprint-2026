@@ -6,7 +6,7 @@ import time
 import serial
 ser = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.1)
 
-time.sleep(2)
+time.sleep(5)
 
 print("connected")
 
