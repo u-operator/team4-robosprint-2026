@@ -17,13 +17,16 @@
 #   0x02  STOP        0x00        0x00          0x00        0x00
 #   0x03  SERVO       servo_id    angle(0-180)  0x00        0x00
 #   0x04  GRIP        state       0x00          0x00        0x00
-#   0x05  ARM         state       0x00          0x00        0x00
+#   0x05  ARM         dir         0x00          0x00        0x00
+#   0x06  GRIP ROTATE dir         0x00          0x00        0x00
+#   0x07  RELAY       relay1      relay2        0x00        0x00
 #
 # For debugging
 #   Moves the arm elevator incrementally
 #   0xD0  EUP        step_size   0x00         0x00         0x00
 #   0xD1  EDOWN      step_size   0x00         0x00         0x00
-#
+#   ARM:
+
 #   MOTORS:
 #     left_dir / right_dir  : 0x00 = forward, 0x01 = reverse
 #     left_speed/right_speed: 0–255
@@ -49,6 +52,8 @@ CMD_STOP   = 0x02
 CMD_SERVO  = 0x03
 CMD_GRIP   = 0x04
 CMD_ARM = 0x05
+CMD_GROT = 0x06
+CMD_RELAY = 0x07
 
 CMD_EUP = 0xD0
 CMD_EDOWN = 0xD1
@@ -62,8 +67,18 @@ G_OPEN = 0x00
 G_CLOSE = 0x01
 
 # Arm states
-A_DOWN = 0x00
-A_UP = 0x01
+A_CW = 0x01
+A_CCW = 0x02
+A_STOP = 0x00
+
+# Grip rotation state
+G_CW = 0x01
+G_CCW = 0x02
+G_STOP = 0x00
+
+# Relay state
+RELAY_OFF = 0x00
+RELAY_ON = 0x01
 
 def build_packet(cmd: int, b1: int = 0, b2: int = 0, b3: int = 0, b4: int = 0) -> bytes:
     checksum = (HEADER + cmd + b1 + b2 + b3 + b4) % 256

@@ -3,14 +3,18 @@
 #include "MotorDrivers.h"
 #include "RobotActions.h"
 
-void updateArm();
-long getTicks();
-void handlePacket();
-
 volatile long ticksHeavy = 0;
 Packet pkt;
 long armTarget = 0;
+int stepSize = 50;
 
+// --- Instantiations ---
+L298N_Motor motorLeft(L298N_ENA, L298N_IN1, L298N_IN2);
+L298N_Motor motorRight(L298N_ENB, L298N_IN3, L298N_IN4);
+MOSFET_Motor heavyMotor(MOSFET_EN, MOSFET_PWM1, MOSFET_PWM2);
+A4988_Stepper stepperMotor(A4988_STEP, A4988_DIR, A4988_EN);
+
+// --- ISR ---
 void isr_heavy()
 {
   if (digitalRead(ENC_H_B))
@@ -19,8 +23,9 @@ void isr_heavy()
     ticksHeavy--;
 }
 
+// --- SETUP ---
 void setup()
-{   
+{
   Serial.begin(115200);
 
   motorLeft.begin();
@@ -35,40 +40,16 @@ void setup()
   pinMode(LIMIT_BOTTOM, INPUT_PULLUP);
 
   attachInterrupt(digitalPinToInterrupt(ENC_H_A), isr_heavy, RISING);
-
-  
-  Serial.println("ALL TEST READY");
 }
 
+// --- LOOP ---
 void loop()
 {
   handlePacket();
-  updateArm();
-
-  // -------------------------
-  // DEBUG OUTPUT
-  // -------------------------
-  static unsigned long t = 0;
-
-  if (millis() - t > 200)
-  {
-    t = millis();
-
-    Serial.print("Ticks:");
-    Serial.print(getTicks());
-
-    Serial.print(" Target:");
-    Serial.print(armTarget);
-
-    Serial.print(" Top:");
-    Serial.print(!digitalRead(LIMIT_TOP));
-
-    Serial.print(" Bottom:");
-    Serial.println(!digitalRead(LIMIT_BOTTOM));
-  }
+  // updateArm();
 }
 
-
+// --- ENCODER READ ---
 long getTicks()
 {
   noInterrupts();
@@ -77,6 +58,7 @@ long getTicks()
   return t;
 }
 
+// --- ARM CONTROL ---
 void updateArm()
 {
   bool topHit = !digitalRead(LIMIT_TOP);
@@ -85,32 +67,43 @@ void updateArm()
   long current = getTicks();
   long error = armTarget - current;
 
-  // -------------------------
-  // DEAD ZONE
-  // -------------------------
+  // dead zone
   if (abs(error) < 5)
   {
     heavyMotor.setPower(0);
     return;
   }
 
-  // -------------------------
-  // MOVE UP
-  // -------------------------
+  // move up
   if (error > 0)
   {
     if (topHit)
     {
       heavyMotor.setPower(0);
-      armTarget = current; // clamp
+      armTarget = current;
     }
     else
     {
       heavyMotor.setPower(140);
     }
   }
+
+  // move down
+  else
+  {
+    if (bottomHit)
+    {
+      heavyMotor.setPower(0);
+      armTarget = current;
+    }
+    else
+    {
+      heavyMotor.setPower(-140);
+    }
+  }
 }
 
+// --- PACKET HANDLER ---
 void handlePacket()
 {
   if (!readPacket(Serial, pkt))
@@ -118,56 +111,97 @@ void handlePacket()
 
   switch (pkt.cmd)
   {
-    // -------------------------
-    // STEP UP
-    // -------------------------
     case CMD_EUP:
-    {
       stepSize = pkt.b1;
       armTarget += stepSize;
-      Serial.print("STEP UP → ");
-      Serial.println(armTarget);
       break;
-    }
 
-    // -------------------------
-    // STEP DOWN
-    // -------------------------
     case CMD_EDOWN:
-    {
       stepSize = pkt.b1;
       armTarget -= stepSize;
-      Serial.print("STEP DOWN → ");
-      Serial.println(armTarget);
       break;
-    }
 
-    // -------------------------
-    // STOP ALL
-    // -------------------------
     case CMD_STOP:
-    {
       heavyMotor.setPower(0);
-      Serial.println("STOP");
+      armTarget = getTicks();
       break;
-    }
 
     case CMD_MOTORS:
     {
-        int leftSpeed  = pkt.b2;
-        int rightSpeed = pkt.b4;
+      int leftSpeed  = pkt.b2;
+      int rightSpeed = pkt.b4;
 
-        if (pkt.b1 == MT_RVS)
-            leftSpeed = -leftSpeed;
+      if (pkt.b1 == MT_RVS)
+        leftSpeed = -leftSpeed;
 
-        if (pkt.b3 == MT_RVS)
-            rightSpeed = -rightSpeed;
+      if (pkt.b3 == MT_RVS)
+        rightSpeed = -rightSpeed;
 
-        motorLeft.setPower(leftSpeed);
-        motorRight.setPower(rightSpeed);
-
-        break;
+      motorLeft.setPower(leftSpeed);
+      motorRight.setPower(rightSpeed);
+      break;
     }
+
+    case CMD_ARM:
+    {
+      uint8_t dir = pkt.b1;
+
+      bool topHit = !digitalRead(LIMIT_TOP);
+      bool bottomHit = !digitalRead(LIMIT_BOTTOM);
+
+      if (dir == A_CW) // UP (CW)
+      {
+          if (!topHit)
+              heavyMotor.setPower(140);
+          else
+              heavyMotor.setPower(0);
+      }
+      else if (dir == A_CCW) // DOWN (CCW)
+      {
+          if (!bottomHit)
+              heavyMotor.setPower(-140);
+          else
+              heavyMotor.setPower(0);
+      }
+      else
+      {
+          heavyMotor.setPower(0);
+      }
+
+      break;
+    }
+
+    case CMD_GROT:
+    {
+      int dir = pkt.b1;
+
+      if (dir == G_CW)
+      {
+          // CW (R1)
+          stepperMotor.setSpeed(1, 800);
+      }
+      else if (dir == G_CCW)
+      {
+          // CCW (R2)
+          stepperMotor.setSpeed(-1, 800);
+      }
+      else
+      {
+          // STOP
+          stepperMotor.setSpeed(0, 0);
+      }
+
+      break;
+    }
+
+    case CMD_RELAY:
+    {
+      digitalWrite(RLYL, pkt.b1 == RELAY_ON ? HIGH : LOW);
+      digitalWrite(RLYR, pkt.b2 == RELAY_ON? HIGH : LOW);
+      
+      break;
+    }
+
     default:
       break;
   }

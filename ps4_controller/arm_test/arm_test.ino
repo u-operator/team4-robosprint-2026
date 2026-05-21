@@ -10,6 +10,7 @@ void handlePacket();
 volatile long ticksHeavy = 0;
 Packet pkt;
 long armTarget = 0;
+int stepSize = 50;
 
 
 void isr_heavy()
