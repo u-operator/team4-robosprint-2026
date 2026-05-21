@@ -30,7 +30,7 @@ last_left = None
 last_right = None
 last_arm = None
 last_grip_rot = None
-last_square = False
+last_cross = False
 last_circle = False
 last_relay1 = None
 last_relay2 = None
@@ -145,32 +145,20 @@ while True:
         last_grip_rot = grip_rot
 
     # Activating relay
-    square = ds4.get_button(0)
+    cross = ds4.get_button(0)
     circle = ds4.get_button(1)
 
-    # -------------------------
-    # RELAY 1 (Square)
-    # -------------------------
-    if square and not last_square:
-        relay1_state = pcl.RELAY_ON
+    # HOLD logic (not edge-based)
+    relay1_state = pcl.RELAY_ON if cross else pcl.RELAY_OFF
+    relay2_state = pcl.RELAY_ON if circle else pcl.RELAY_OFF
 
-    if not square and last_square:
-        relay1_state = pcl.RELAY_OFF
-
-    # -------------------------
-    # RELAY 2 (Circle)
-    # -------------------------
-    if circle and not last_circle:
-        relay2_state = pcl.RELAY_ON
-
-    if not circle and last_circle:
-        relay2_state = pcl.RELAY_OFF
-
-    last_square = square
-    last_circle = circle
-
+    # send only if changed (optional optimization)
     if relay1_state != last_relay1 or relay2_state != last_relay2:
-        pkt = pcl.build_packet(pcl.CMD_RELAY, relay1_state, relay2_state)
+        pkt = pcl.build_packet(
+            pcl.CMD_RELAY,
+            relay1_state,
+            relay2_state
+        )
 
         serial.send_no_wait(pkt)
 
