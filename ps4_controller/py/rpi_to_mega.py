@@ -46,46 +46,62 @@ relay2_state = None
 while True:
     pygame.event.pump()
 
-    ly = ds4.get_axis(1)
-    lx = ds4.get_axis(0)
+    ly = ds4.get_axis(1)  # -1.0 to 1.0
+    lx = ds4.get_axis(0)  # -1.0 to 1.0
 
-    # base movement
-    base = int(-ly * 255)
-    turn = int(lx * TURN_GAIN)
+    # ------------------------------------------------
+    # Convert pygame axis -> PS2 style 0-255
+    # ------------------------------------------------
+    stickY = int((ly + 1.0) * 127.5)
+    stickX = int((lx + 1.0) * 127.5)
 
-    left = base + turn
-    right = base - turn
+    # ------------------------------------------------
+    # Match Arduino map()
+    # map(0,255,255,-255)
+    # ------------------------------------------------
+    drive = int(((255 - stickY) / 255.0) * 510 - 255)
+    turn = int(((255 - stickX) / 255.0) * 510 - 255)
 
-    # clamp
+    # ------------------------------------------------
+    # DEADZONE
+    # ------------------------------------------------
+    if abs(drive) < DEADZONE:
+        drive = 0
+
+    if abs(turn) < DEADZONE:
+        turn = 0
+
+    # ------------------------------------------------
+    # MIXING
+    # ------------------------------------------------
+    left = drive + turn
+    right = drive - turn
+
+    # ------------------------------------------------
+    # CLAMP
+    # ------------------------------------------------
     left = max(-255, min(255, left))
     right = max(-255, min(255, right))
 
-    # deadzone
-    if abs(left) < DEADZONE:
-        left = 0
-    if abs(right) < DEADZONE:
-        right = 0
+    # ------------------------------------------------
+    # CHANGE DETECTION
+    # ------------------------------------------------
+    if left != last_left or right != last_right:
+        last_left = left
+        last_right = right
 
-    # change detection (IMPORTANT)
-    if left == last_left and right == last_right:
-        continue
+        l_dir = pcl.MT_FWD if left >= 0 else pcl.MT_RVS
+        r_dir = pcl.MT_FWD if right >= 0 else pcl.MT_RVS
 
-    last_left = left
-    last_right = right
+        packet = pcl.build_packet(
+            pcl.CMD_MOTORS,
+            l_dir,
+            abs(left),
+            r_dir,
+            abs(right)
+        )
 
-    # direction + speed split
-    l_dir = pcl.MT_FWD if left >= 0 else pcl.MT_RVS
-    r_dir = pcl.MT_FWD if right >= 0 else pcl.MT_RVS
-
-    packet = pcl.build_packet(
-        pcl.CMD_MOTORS,
-        l_dir,
-        abs(left),
-        r_dir,
-        abs(right)
-    )
-
-    serial.send_no_wait(packet)
+        serial.send_no_wait(packet)
 
     # Arm elevator control
     L1 = ds4.get_button(4)
