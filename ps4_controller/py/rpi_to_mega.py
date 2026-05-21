@@ -37,8 +37,8 @@ last_relay2 = None
 
 arm_state = None
 grip_rot = None
-relay1_state = None
-relay2_state = None
+relay1_state = pcl.RELAY_OFF
+relay2_state = pcl.RELAY_OFF
 
 # -------------------------
 # Main loop
