@@ -12,9 +12,9 @@ while True:
     pkt = pcl.build_packet(
         pcl.CMD_MOTORS,
         pcl.MT_FWD,
-        120,
+        0,
         pcl.MT_FWD,
-        120
+        0
     )
 
     print(list(pkt))
