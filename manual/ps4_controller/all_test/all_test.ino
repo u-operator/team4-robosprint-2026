@@ -31,15 +31,22 @@ void setup()
   motorLeft.begin();
   motorRight.begin();
   heavyMotor.begin();
+  stepperMotor.begin();
 
   pinMode(ENC_L_A, INPUT_PULLUP); pinMode(ENC_L_B, INPUT_PULLUP);
   pinMode(ENC_R_A, INPUT_PULLUP); pinMode(ENC_R_B, INPUT_PULLUP);
   pinMode(ENC_H_A, INPUT_PULLUP); pinMode(ENC_H_B, INPUT_PULLUP);
 
-  pinMode(LIMIT_TOP, INPUT_PULLUP);
-  pinMode(LIMIT_BOTTOM, INPUT_PULLUP);
+  pinMode(LIMIT_TOP1, INPUT_PULLUP);
+  pinMode(LIMIT_TOP2, INPUT_PULLUP);
+
+  pinMode(RLYL, OUTPUT);
+  pinMode(RLYR, OUTPUT);
+  digitalWrite(RLYL, HIGH);
+  digitalWrite(RLYR, HIGH);
 
   attachInterrupt(digitalPinToInterrupt(ENC_H_A), isr_heavy, RISING);
+  stepperMotor.setSpeed(1, 800);
 }
 
 // --- LOOP ---
@@ -47,6 +54,7 @@ void loop()
 {
   handlePacket();
   // updateArm();
+  stepperMotor.update();
 }
 
 // --- ENCODER READ ---
@@ -56,51 +64,6 @@ long getTicks()
   long t = ticksHeavy;
   interrupts();
   return t;
-}
-
-// --- ARM CONTROL ---
-void updateArm()
-{
-  bool topHit = !digitalRead(LIMIT_TOP);
-  bool bottomHit = !digitalRead(LIMIT_BOTTOM);
-
-  long current = getTicks();
-  long error = armTarget - current;
-
-  // dead zone
-  if (abs(error) < 5)
-  {
-    heavyMotor.setPower(0);
-    return;
-  }
-
-  // move up
-  if (error > 0)
-  {
-    if (topHit)
-    {
-      heavyMotor.setPower(0);
-      armTarget = current;
-    }
-    else
-    {
-      heavyMotor.setPower(140);
-    }
-  }
-
-  // move down
-  else
-  {
-    if (bottomHit)
-    {
-      heavyMotor.setPower(0);
-      armTarget = current;
-    }
-    else
-    {
-      heavyMotor.setPower(-140);
-    }
-  }
 }
 
 // --- PACKET HANDLER ---
@@ -146,22 +109,17 @@ void handlePacket()
     {
       uint8_t dir = pkt.b1;
 
-      bool topHit = !digitalRead(LIMIT_TOP);
-      bool bottomHit = !digitalRead(LIMIT_BOTTOM);
+      bool top1Hit = !digitalRead(LIMIT_TOP1);
+      bool top2Hit = !digitalRead(LIMIT_TOP2);
 
       if (dir == A_CW) // UP (CW)
       {
-          if (!topHit)
-              heavyMotor.setPower(140);
-          else
-              heavyMotor.setPower(0);
+          if (!(top1Hit && top2Hit))
+              heavyMotor.setPower(200);
       }
       else if (dir == A_CCW) // DOWN (CCW)
       {
-          if (!bottomHit)
-              heavyMotor.setPower(-140);
-          else
-              heavyMotor.setPower(0);
+              heavyMotor.setPower(-200);
       }
       else
       {
@@ -173,34 +131,37 @@ void handlePacket()
 
     case CMD_GROT:
     {
-      int dir = pkt.b1;
+      uint8_t dir = pkt.b1;
 
       if (dir == G_CW)
       {
           // CW (R1)
-          stepperMotor.setSpeed(1, 800);
+          stepperMotor.setSpeed(1, 300);
       }
       else if (dir == G_CCW)
       {
           // CCW (R2)
-          stepperMotor.setSpeed(-1, 800);
+          stepperMotor.setSpeed(-1, 300);
       }
       else
       {
           // STOP
           stepperMotor.setSpeed(0, 0);
       }
-
       break;
     }
 
     case CMD_RELAY:
     {
-      digitalWrite(RLYL, pkt.b1 == RELAY_ON ? HIGH : LOW);
-      digitalWrite(RLYR, pkt.b2 == RELAY_ON? HIGH : LOW);
-      
+      bool relay1 = (pkt.b1 == RELAY_ON);
+      bool relay2 = (pkt.b2 == RELAY_ON);
+
+      digitalWrite(RLYL, relay1 ? LOW : HIGH);
+      digitalWrite(RLYR, relay2 ? LOW : HIGH);
+
       break;
     }
+    
 
     default:
       break;

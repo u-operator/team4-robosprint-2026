@@ -6,11 +6,15 @@ from collections import deque, Counter
 # TODO: Test whether the complicated functions work
 # TODO: Test function
 class Camera:
-    def __init__(self, ip: str, port: int = 8080, flip: bool = False):
-        self.url = f"http://{ip}:{port}/video"
-        self.cap = cv2.VideoCapture(self.url)
-        self.flip = flip
+    def __init__(self, ip: str = None, port: int = 8080, device: int = 0, flip: bool = False):
 
+        if ip:
+            source = f"http://{ip}:{port}/video" # For using IP Webcam
+        else:
+            source = device # No IP provided, check the locally connected webcam
+
+        self.cap = cv2.VideoCapture(source)
+        self.flip = flip
         # Letter recognition state
         self.templates = self._load_templates()
         self.detection_buffer = deque(maxlen=15)

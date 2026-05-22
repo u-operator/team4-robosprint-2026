@@ -4,19 +4,40 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="931ce88a-4b23-41f9-a47f-47a9d9177391" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/Robosprint.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/line_mask.py" afterDir="false" />
+    <list default="true" id="931ce88a-4b23-41f9-a47f-47a9d9177391" name="Changes" comment="Fixed bug?">
+      <change afterPath="$PROJECT_DIR$/letter recognition/detection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/camera.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/line_follow.py" beforeDir="false" afterPath="$PROJECT_DIR$/line_follow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/main/MotorDrivers.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/main/MotorDrivers.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/main/MotorDrivers.h" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/main/MotorDrivers.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/main/RobotActions.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/main/RobotActions.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/main/RobotActions.h" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/main/RobotActions.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/main/main.ino" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/main/main.ino" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/test/MotorDrivers.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/test/MotorDrivers.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/test/MotorDrivers.h" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/test/MotorDrivers.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/test/RobotActions.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/test/RobotActions.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/test/RobotActions.h" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/test/RobotActions.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/test/mega_loco_test/MotorDrivers.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/test/mega_loco_test/MotorDrivers.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/test/mega_loco_test/MotorDrivers.h" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/test/mega_loco_test/MotorDrivers.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/test/mega_loco_test/RobotActions.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/test/mega_loco_test/RobotActions.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/test/mega_loco_test/RobotActions.h" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/test/mega_loco_test/RobotActions.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/test/mega_loco_test/mega_loco_test.ino" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/test/mega_loco_test/mega_loco_test.ino" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/test/mega_loco_test/pin_config.h" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/test/mega_loco_test/pin_config.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps2_controller/test/test_with_rpi.ino" beforeDir="false" afterPath="$PROJECT_DIR$/manual/ps2_controller/test/test_with_rpi.ino" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps4_controller/all_test/MotorDrivers.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/ps4_controller/all_test/MotorDrivers.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps4_controller/all_test/all_test.ino" beforeDir="false" afterPath="$PROJECT_DIR$/ps4_controller/all_test/all_test.ino" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps4_controller/all_test/pin_config.h" beforeDir="false" afterPath="$PROJECT_DIR$/ps4_controller/all_test/pin_config.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps4_controller/arduino_protocols/pin_config.h" beforeDir="false" afterPath="$PROJECT_DIR$/ps4_controller/arduino_protocols/pin_config.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps4_controller/py/rpi_to_mega.py" beforeDir="false" afterPath="$PROJECT_DIR$/ps4_controller/py/v1/rpi_to_mega.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/robot.py" beforeDir="false" afterPath="$PROJECT_DIR$/robot.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ChangesViewManager" show_ignored="true" />
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
@@ -27,6 +48,21 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;u-operator&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/u-operator/team4-robosprint-2026.git&quot;,
+    &quot;accountId&quot;: &quot;76a30c27-5d17-4211-8fc2-351dcb4ce6ea&quot;
+  }
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 5
 }</component>
@@ -36,20 +72,34 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.camera.executor": "Run",
-    "Python.line_follow.executor": "Run",
-    "Python.line_mask.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/Users/MrHakim/PycharmProjects/Robosprint"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.camera.executor&quot;: &quot;Run&quot;,
+    &quot;Python.line_follow.executor&quot;: &quot;Run&quot;,
+    &quot;Python.line_mask.executor&quot;: &quot;Run&quot;,
+    &quot;Python.rpi_to_mega.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/MrHakim/PycharmProjects/Robosprint/letter recognition/templates&quot;
   }
-}]]></component>
+}</component>
+  <component name="QodanaReportsService">
+    <option name="descriptions">
+      <ReportDescription localRun="true" path="C:\Users\MrHakim\AppData\Local\Temp\qodana_output\qodana.sarif.json" reportGuid="2e0beb5c-c516-4d79-a845-ea535045a66d" reportId="Robosprint/qodana/2026-05-13" />
+    </option>
+  </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\MrHakim\PycharmProjects\Robosprint\letter recognition\templates" />
       <recent name="C:\Users\MrHakim\PycharmProjects\Robosprint" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\MrHakim\PycharmProjects\Robosprint\manual" />
+      <recent name="C:\Users\MrHakim\PycharmProjects\Robosprint\ps4_controller\py\v1" />
+      <recent name="C:\Users\MrHakim\PycharmProjects\Robosprint\ps4_controller\arduino_protocols" />
+      <recent name="C:\Users\MrHakim\PycharmProjects\Robosprint\communication" />
+      <recent name="C:\Users\MrHakim\PycharmProjects\Robosprint\letter recognition" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -68,6 +118,399 @@
       <option name="presentableId" value="Default" />
       <updated>1776566178720</updated>
     </task>
+    <task id="LOCAL-00007" summary="Added full cube detection code">
+      <option name="closed" value="true" />
+      <created>1778738452049</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1778738452049</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Implemented deposit cube: Just a reverse of pick">
+      <option name="closed" value="true" />
+      <created>1778739623160</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1778739623160</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Added code regarding serial comm for the rpi">
+      <option name="closed" value="true" />
+      <created>1778745208258</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1778745208258</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Added comm code for the arduino mega">
+      <option name="closed" value="true" />
+      <created>1778745336864</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1778745336864</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Updated protocol to accommodate more bytes">
+      <option name="closed" value="true" />
+      <created>1778746881544</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1778746881544</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Updated drivetrain to send commands via serial">
+      <option name="closed" value="true" />
+      <created>1778769913005</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1778769913005</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Added constants for motor directions">
+      <option name="closed" value="true" />
+      <created>1778771202288</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1778771202290</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Added new methods for detecting cubes and labels: detect_all_labels, find_best_cube, find_cube, get_cube_box">
+      <option name="closed" value="true" />
+      <created>1778772386989</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1778772386989</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Fixed approach_cube and align_to_cube">
+      <option name="closed" value="true" />
+      <created>1778772525826</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1778772525826</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Added mode E: edge + centroid + histogram, mode A: edge only, mode D: centroid contour + histogram only for testing which to use">
+      <option name="closed" value="true" />
+      <created>1778843994820</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1778843994820</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Removed mode A and D">
+      <option name="closed" value="true" />
+      <created>1778844044988</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1778844044988</updated>
+    </task>
+    <task id="LOCAL-00018" summary="Removed contour from mode E">
+      <option name="closed" value="true" />
+      <created>1778844673423</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1778844673423</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Commit mode E">
+      <option name="closed" value="true" />
+      <created>1778868620651</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1778868620651</updated>
+    </task>
+    <task id="LOCAL-00020" summary="Added creep_until_line which is to be used for when the robot is starting from the zone">
+      <option name="closed" value="true" />
+      <created>1779253325894</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1779253325894</updated>
+    </task>
+    <task id="LOCAL-00021" summary="Added comments">
+      <option name="closed" value="true" />
+      <created>1779253797243</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1779253797243</updated>
+    </task>
+    <task id="LOCAL-00022" summary="Added new states">
+      <option name="closed" value="true" />
+      <created>1779255291731</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1779255291731</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Refactor">
+      <option name="closed" value="true" />
+      <created>1779256740241</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1779256740241</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Added constants for the Arm position: DOWN or UP">
+      <option name="closed" value="true" />
+      <created>1779259771417</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1779259771417</updated>
+    </task>
+    <task id="LOCAL-00025" summary="Updated arm.py to use the serial comm">
+      <option name="closed" value="true" />
+      <created>1779259860536</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1779259860536</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Added a README">
+      <option name="closed" value="true" />
+      <created>1779288860406</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1779288860406</updated>
+    </task>
+    <task id="LOCAL-00027" summary="Moved these files into new folder">
+      <option name="closed" value="true" />
+      <created>1779288909096</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1779288909096</updated>
+    </task>
+    <task id="LOCAL-00028" summary="Added files for testing using ps4 controller">
+      <option name="closed" value="true" />
+      <created>1779288966370</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1779288966370</updated>
+    </task>
+    <task id="LOCAL-00029" summary="Added files for testing using ps2 controller">
+      <option name="closed" value="true" />
+      <created>1779289024064</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1779289024064</updated>
+    </task>
+    <task id="LOCAL-00030" summary="Added image templates for the cube detection">
+      <option name="closed" value="true" />
+      <created>1779289060176</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1779289060176</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Fixed a bug in navigate()">
+      <option name="closed" value="true" />
+      <created>1779289117380</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1779289117380</updated>
+    </task>
+    <task id="LOCAL-00032" summary="Added new testing code">
+      <option name="closed" value="true" />
+      <created>1779302075368</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1779302075368</updated>
+    </task>
+    <task id="LOCAL-00033" summary="Added new Command for debugging the elevator arm">
+      <option name="closed" value="true" />
+      <created>1779302123539</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1779302123539</updated>
+    </task>
+    <task id="LOCAL-00034" summary="Added the mega test cdoe for arm">
+      <option name="closed" value="true" />
+      <created>1779302158885</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1779302158885</updated>
+    </task>
+    <task id="LOCAL-00035" summary="Removed">
+      <option name="closed" value="true" />
+      <created>1779302182430</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1779302182430</updated>
+    </task>
+    <task id="LOCAL-00036" summary="Added files for using the protocol on arduino">
+      <option name="closed" value="true" />
+      <created>1779302275976</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1779302275976</updated>
+    </task>
+    <task id="LOCAL-00037" summary="IDK">
+      <option name="closed" value="true" />
+      <created>1779302295754</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1779302295754</updated>
+    </task>
+    <task id="LOCAL-00038" summary="Remvoed comments">
+      <option name="closed" value="true" />
+      <created>1779343830489</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1779343830489</updated>
+    </task>
+    <task id="LOCAL-00039" summary="Updated to use constants defined">
+      <option name="closed" value="true" />
+      <created>1779343858280</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1779343858280</updated>
+    </task>
+    <task id="LOCAL-00040" summary="Added CMD_EDOWN and CMD_EUP">
+      <option name="closed" value="true" />
+      <created>1779343886850</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1779343886850</updated>
+    </task>
+    <task id="LOCAL-00041" summary="Added left and right relay pins">
+      <option name="closed" value="true" />
+      <created>1779344053860</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1779344053860</updated>
+    </task>
+    <task id="LOCAL-00042" summary="Fixed bug">
+      <option name="closed" value="true" />
+      <created>1779347144647</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1779347144647</updated>
+    </task>
+    <task id="LOCAL-00043" summary="Fixed bug">
+      <option name="closed" value="true" />
+      <created>1779347563639</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1779347563639</updated>
+    </task>
+    <task id="LOCAL-00044" summary="Fixed bug">
+      <option name="closed" value="true" />
+      <created>1779347938876</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1779347938876</updated>
+    </task>
+    <task id="LOCAL-00045" summary="Fixed bug">
+      <option name="closed" value="true" />
+      <created>1779348677919</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1779348677919</updated>
+    </task>
+    <task id="LOCAL-00046" summary="Fixed bug">
+      <option name="closed" value="true" />
+      <created>1779349360253</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1779349360253</updated>
+    </task>
+    <task id="LOCAL-00047" summary="Fixed bug">
+      <option name="closed" value="true" />
+      <created>1779349954535</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1779349954535</updated>
+    </task>
+    <task id="LOCAL-00048" summary="Fixed bug">
+      <option name="closed" value="true" />
+      <created>1779350366948</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1779350366948</updated>
+    </task>
+    <task id="LOCAL-00049" summary="Fixed bug">
+      <option name="closed" value="true" />
+      <created>1779350718118</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1779350718118</updated>
+    </task>
+    <task id="LOCAL-00050" summary="Fixed bug">
+      <option name="closed" value="true" />
+      <created>1779351834151</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1779351834155</updated>
+    </task>
+    <task id="LOCAL-00051" summary="Test code for manual everything UPdated the protocols">
+      <option name="closed" value="true" />
+      <created>1779372940073</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1779372940073</updated>
+    </task>
+    <task id="LOCAL-00052" summary="Fixed bug?">
+      <option name="closed" value="true" />
+      <created>1779377591368</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1779377591368</updated>
+    </task>
+    <task id="LOCAL-00053" summary="Fixed bug?">
+      <option name="closed" value="true" />
+      <created>1779378303744</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1779378303744</updated>
+    </task>
+    <task id="LOCAL-00054" summary="Fixed bug?">
+      <option name="closed" value="true" />
+      <created>1779380712810</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1779380712810</updated>
+    </task>
+    <task id="LOCAL-00055" summary="Fixed bug?">
+      <option name="closed" value="true" />
+      <created>1779381436765</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1779381436765</updated>
+    </task>
+    <option name="localTasksCounter" value="56" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -75,10 +518,60 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="master" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Added creep_until_line which is to be used for when the robot is starting from the zone" />
+    <MESSAGE value="Added comments" />
+    <MESSAGE value="Added new states" />
+    <MESSAGE value="Refactor" />
+    <MESSAGE value="Added constants for the Arm position: DOWN or UP" />
+    <MESSAGE value="Updated arm.py to use the serial comm" />
+    <MESSAGE value="Added a README" />
+    <MESSAGE value="Moved these files into new folder" />
+    <MESSAGE value="Added files for testing using ps4 controller" />
+    <MESSAGE value="Added files for testing using ps2 controller" />
+    <MESSAGE value="Added image templates for the cube detection" />
+    <MESSAGE value="Fixed a bug in navigate()" />
+    <MESSAGE value="Added new testing code" />
+    <MESSAGE value="Added new Command for debugging the elevator arm" />
+    <MESSAGE value="Added the mega test cdoe for arm" />
+    <MESSAGE value="Removed" />
+    <MESSAGE value="Added files for using the protocol on arduino" />
+    <MESSAGE value="IDK" />
+    <MESSAGE value="Remvoed comments" />
+    <MESSAGE value="Updated to use constants defined" />
+    <MESSAGE value="Added CMD_EDOWN and CMD_EUP" />
+    <MESSAGE value="Added left and right relay pins" />
+    <MESSAGE value="Fixed bug" />
+    <MESSAGE value="Test code for manual everything UPdated the protocols" />
+    <MESSAGE value="Fixed bug?" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed bug?" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/communications/serial_bridge.py</url>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

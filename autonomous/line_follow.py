@@ -58,11 +58,10 @@ class LineFollower:
                 self.reset_pid()
                 continue
 
-
             correction = self.pid(error)
             self.drivetrain.set_motors(
-                speed_left  = min(self.BASE_SPEED + correction, 255),
-                speed_right = max(self.BASE_SPEED - correction, -255)
+                speed_left  = max(-255, min(255, self.BASE_SPEED + correction)),
+                speed_right = max(-255, min(255, self.BASE_SPEED - correction))
             )
 
     def follow_until_zone(self):

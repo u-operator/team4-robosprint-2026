@@ -9,14 +9,15 @@ REAL_CUBES = ['B', 'C', 'E', 'M', 'R', 'U']
 # TODO: Test all functions
 
 class Robot:
-    def __init__(self, ip: str):
+    def __init__(self, ip: str, device: int = None):
         # Initialize hardware
         self.s_com = SerialBridge()
-        self.camera = Camera(ip=ip)
+        self.camera1 = Camera(device = device) # Webcam for line following
+        self.camera2 = Camera(ip=ip) # Phone camera
         self.drivetrain = Drivetrain(self.s_com)
         self.arm = Arm(self.s_com)
         self.has_cube = False
-        self.line_follow = LineFollower(self.camera, self.drivetrain)
+        self.line_follow = LineFollower(self.camera1, self.drivetrain)
 
 
     # Movement
@@ -70,9 +71,9 @@ class Robot:
         Kp = 0.3 # For error correction
 
         for _ in range(MAX_ATTEMPTS):
-            frame = self.camera.capture()
+            frame = self.camera2.capture()
             h, w = frame.shape[:2]
-            cx, cy = self.camera.find_cube(frame, target_label)  # ← you implement this
+            cx, cy = self.camera2.find_cube(frame, target_label)  # ← you implement this
 
             if cx is None:
                 # Cube not visible — stop and fail
@@ -105,8 +106,8 @@ class Robot:
         MAX_ATTEMPTS = 60
 
         for _ in range(MAX_ATTEMPTS):
-            frame = self.camera.capture()
-            box = self.camera.get_cube_box(frame, target_label)  # (x, y, w, h)
+            frame = self.camera2.capture()
+            box = self.camera2.get_cube_box(frame, target_label)  # (x, y, w, h)
 
             if box is None:
                 self.drivetrain.stop()
@@ -126,8 +127,8 @@ class Robot:
     # Vision
     def scan_cube(self) -> str:
 
-        frame = self.camera.capture()
-        label = self.camera.find_best_cube(frame, REAL_CUBES)
+        frame = self.camera2.capture()
+        label = self.camera2.find_best_cube(frame, REAL_CUBES)
         return label
 
     # Arm

@@ -134,6 +134,7 @@ void A4988_Stepper::update()
 
   // step pulse
   digitalWrite(_step, HIGH);
-  delayMicroseconds(2);
+  delayMicroseconds(800);
   digitalWrite(_step, LOW);
+  delayMicroseconds(800);
 }

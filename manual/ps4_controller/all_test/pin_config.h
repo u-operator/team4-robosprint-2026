@@ -46,8 +46,8 @@
 #define PS2_CLK 47
 
 // Limit Switches
-#define LIMIT_TOP 51
-#define LIMIT_BOTTOM 53
+#define LIMIT_TOP1 51
+#define LIMIT_TOP2 53
 
 // Relay
 #define RLYL 49    // Left
