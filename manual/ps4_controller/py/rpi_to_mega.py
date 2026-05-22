@@ -32,13 +32,13 @@ last_arm = None
 last_grip_rot = None
 last_cross = False
 last_circle = False
-last_relay1 = None
-last_relay2 = None
+last_relayleft = None
+last_relayright = None
 
 arm_state = None
 grip_rot = None
-relay1_state = pcl.RELAY_OFF
-relay2_state = pcl.RELAY_OFF
+relayleft_state = pcl.RELAY_OFF
+relayright_state = pcl.RELAY_OFF
 
 # -------------------------
 # Main loop
@@ -148,21 +148,35 @@ while True:
     cross = ds4.get_button(0)
     circle = ds4.get_button(1)
 
-    # HOLD logic (not edge-based)
-    relay1_state = pcl.RELAY_ON if cross else pcl.RELAY_OFF
-    relay2_state = pcl.RELAY_ON if circle else pcl.RELAY_OFF
+    # Left Relay controls piston
+    relayleft_state = pcl.RELAY_ON if cross else pcl.RELAY_OFF
 
-    # send only if changed (optional optimization)
-    if relay1_state != last_relay1 or relay2_state != last_relay2:
+    # --- RIGHT RELAY (toggle behavior) --- # Controls gripper
+
+    # detect rising edge
+    if circle and not last_circle:
+
+        # toggle state
+        if relayright_state == pcl.RELAY_OFF:
+            relayright_state = pcl.RELAY_ON
+        else:
+            relayright_state = pcl.RELAY_OFF
+
+    # save current button state
+    last_circle = circle
+
+    # --- SEND ONLY IF CHANGED ---
+    if (relayleft_state != last_relayleft or
+            relayright_state != last_relayright):
         pkt = pcl.build_packet(
             pcl.CMD_RELAY,
-            relay1_state,
-            relay2_state
+            relayleft_state,
+            relayright_state
         )
 
         serial.send_no_wait(pkt)
 
-        last_relay1 = relay1_state
-        last_relay2 = relay2_state
+        last_relayleft = relayleft_state
+        last_relayright = relayright_state
 
     time.sleep(0.02)
